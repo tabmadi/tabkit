@@ -107,10 +107,16 @@ in
             stages = [ "commit-msg" ];
           };
           # Only the commits that this push adds. Older history can predate the convention.
+          # Before the first push, origin/master does not exist, so every commit is checked.
           commit-range = {
             enable = true;
             name = "cog check";
-            entry = "${cog} check origin/master..HEAD";
+            entry = "${pkgs.writeShellScript "cog-check-range" ''
+              if ${pkgs.git}/bin/git rev-parse --quiet --verify origin/master > /dev/null; then
+                exec ${cog} check origin/master..HEAD
+              fi
+              exec ${cog} check
+            ''}";
             stages = [ "pre-push" ];
             pass_filenames = false;
             always_run = true;
