@@ -11,7 +11,7 @@ The established linters each own one language or one format. None of them checks
 
 ## Decision
 
-tablint is one binary that checks the rules of [ADR-0001](0001-documentation-conventions.md) and the structure of an ADR set. A repository adds it as a flake input, per [ADR-0300](0300-releases.md), and adds a short `.config/tablint.toml`.
+tablint is one binary that checks the rules of [ADR-0001](0001-documentation-conventions.md) and the structure of an ADR set. A repository gets it through the shared toolchain, or adds it as a flake input, per [ADR-0300](0300-releases.md).
 
 **It serves its owner.** The rules are the owner's opinion, and a default is a decision. A repository can turn a rule off, but it cannot redesign one. The code is public under the Apache License 2.0, and it makes no promise of support or compatibility.
 
@@ -29,7 +29,7 @@ tablint is one binary that checks the rules of [ADR-0001](0001-documentation-con
 
 A rule that suits the owner and not another user stays. Another user forks the repository or turns the rule off.
 
-One fix to a rule reaches every repository when it moves its flake input to the new tag.
+One fix to a rule reaches every repository when its toolchain moves to the new tag.
 
 ## Rules
 

@@ -1,205 +1,80 @@
-# The toolchain, the git hooks, the tablint package, and the checks, per ADR-0100.
+# The toolchain, the git hooks, the tablint package, and the checks, per ADR-0100. The tabnix module
+# holds every shared part, and this file adds the Rust parts.
 {
   description = "An opinionated linter for Simple English prose, code comments, and decision records";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
-    git-hooks = {
-      url = "github:cachix/git-hooks.nix";
+    flake-parts = {
+      url = "github:hercules-ci/flake-parts";
+      inputs.nixpkgs-lib.follows = "nixpkgs";
+    };
+    # tabnix uses tablint, so its tablint input follows this flake and never pins an older release.
+    tabnix = {
+      url = "github:tabmadi/tabnix/v0.1.1";
       inputs.nixpkgs.follows = "nixpkgs";
+      inputs.flake-parts.follows = "flake-parts";
+      inputs.tablint.follows = "";
     };
   };
 
   outputs =
-    {
-      self,
-      nixpkgs,
-      git-hooks,
-    }:
-    let
-      systems = [
-        "x86_64-linux"
-        "aarch64-linux"
-        "x86_64-darwin"
-        "aarch64-darwin"
-      ];
-      forEachSystem = f: nixpkgs.lib.genAttrs systems (system: f nixpkgs.legacyPackages.${system});
+    inputs@{ flake-parts, tabnix, ... }:
+    flake-parts.lib.mkFlake { inherit inputs; } {
+      imports = [ tabnix.flakeModules.default ];
 
-      cargoToml = builtins.fromTOML (builtins.readFile ./Cargo.toml);
-
-      # The tablint binary. Building it also runs `cargo test`, with the fixture tests.
-      tablint =
-        pkgs:
-        pkgs.rustPlatform.buildRustPackage {
-          pname = "tablint";
-          inherit (cargoToml.package) version;
-          src = self;
-          cargoLock.lockFile = ./Cargo.lock;
-          meta.mainProgram = "tablint";
-        };
-
-      # The configs in .config/ that a tool does not find by itself. The paths are relative to the repo root.
-      configEnv = {
-        GITLEAKS_CONFIG = ".config/gitleaks.toml";
-      };
-
-      # The configs in .config/ that a tool finds only through a flag. Every call of the tool passes it.
-      configFlags = {
-        cog = "--config .config/cog.toml";
-      };
-
-      # The one formatter of JSON, JSONC, TOML, and YAML, per ADR-0100. dprint takes its config
-      # and its plugins only as flags after the subcommand, so this wrapper adds both to every call.
-      dprint =
-        pkgs:
+      perSystem =
+        { pkgs, ... }:
         let
-          plugins = with pkgs.dprint-plugins; [
-            dprint-plugin-json
-            dprint-plugin-toml
-            g-plane-pretty_yaml
-          ];
-          pluginFiles = pkgs.lib.concatMapStringsSep " " (plugin: "${plugin}/plugin.wasm") plugins;
-        in
-        pkgs.writeShellScriptBin "dprint" ''
-          case "''${1:-}" in
-            fmt | check | file-paths | output-file-paths | resolved-config | output-resolved-config)
-              command=$1
-              shift
-              exec ${pkgs.dprint}/bin/dprint "$command" --plugins ${pluginFiles} --config .config/dprint.json "$@"
-              ;;
-            *) exec ${pkgs.dprint}/bin/dprint "$@" ;;
-          esac
-        '';
+          cargoToml = builtins.fromTOML (builtins.readFile ./Cargo.toml);
 
-      # A check runs a command on a writable copy of the tracked files, so a tool can write its cache.
-      check =
-        pkgs: name: tools: command:
-        pkgs.runCommand name ({ nativeBuildInputs = tools; } // configEnv) ''
-          cp -r ${self} source
-          chmod -R u+w source
-          cd source
-          ${command}
-          touch $out
-        '';
-
-      hooks =
-        pkgs:
-        git-hooks.lib.${pkgs.stdenv.hostPlatform.system}.run {
-          src = ./.;
-          package = pkgs.prek;
-          hooks = {
-            rust = {
-              enable = true;
-              name = "cargo fmt";
-              entry = "${pkgs.writeShellScript "cargo-fmt-check" ''
-                export PATH=${pkgs.cargo}/bin:${pkgs.rustfmt}/bin:$PATH
-                exec cargo fmt --check
-              ''}";
-              files = "\\.rs$";
-              pass_filenames = false;
-            };
-            markdown = {
-              enable = true;
-              name = "rumdl";
-              entry = "${pkgs.rumdl}/bin/rumdl check";
-              files = "\\.md$";
-            };
-            data = {
-              enable = true;
-              name = "dprint";
-              entry = "${dprint pkgs}/bin/dprint check";
-              files = "\\.(jsonc?|toml|ya?ml)$";
-            };
-            justfile = {
-              enable = true;
-              name = "just --fmt";
-              entry = "${pkgs.just}/bin/just --fmt --check";
-              files = "(^|/)justfile$";
-              pass_filenames = false;
-            };
-            secrets = {
-              enable = true;
-              name = "gitleaks";
-              entry = "${pkgs.gitleaks}/bin/gitleaks git --config ${configEnv.GITLEAKS_CONFIG} --pre-commit --staged --no-banner";
-              pass_filenames = false;
-            };
-            commit-message = {
-              enable = true;
-              name = "cog verify";
-              entry = "${pkgs.cocogitto}/bin/cog ${configFlags.cog} verify --file";
-              stages = [ "commit-msg" ];
-            };
-            # Only the commits that this push adds. Older history can predate the convention.
-            commit-range = {
-              enable = true;
-              name = "cog check";
-              entry = "${pkgs.cocogitto}/bin/cog ${configFlags.cog} check origin/master..HEAD";
-              stages = [ "pre-push" ];
-              pass_filenames = false;
-              always_run = true;
-            };
-            ci = {
-              enable = true;
-              name = "just ci";
-              entry = "${pkgs.just}/bin/just ci";
-              stages = [ "pre-push" ];
-              pass_filenames = false;
-              always_run = true;
-            };
+          # The tablint binary. Building it also runs `cargo test`, with the fixture tests.
+          tablint = pkgs.rustPlatform.buildRustPackage {
+            pname = "tablint";
+            inherit (cargoToml.package) version;
+            src = ./.;
+            cargoLock.lockFile = ./Cargo.lock;
+            meta.mainProgram = "tablint";
           };
-        };
-    in
-    {
-      packages = forEachSystem (pkgs: {
-        default = tablint pkgs;
-      });
-
-      devShells = forEachSystem (pkgs: {
-        default = pkgs.mkShell {
-          packages = with pkgs; [
+        in
+        {
+          tabnix.packages = with pkgs; [
             cargo
             rustc
             clippy
             rustfmt
-            just
-            cocogitto
-            rumdl
-            gitleaks
-            # The formatter of JSON, TOML, and YAML, per ADR-0100.
-            (dprint pkgs)
-            # The language servers and the Nix formatter, for the editor.
             rust-analyzer
-            nixd
-            nixfmt
           ];
-          env = configEnv;
-          shellHook = (hooks pkgs).shellHook;
+          tabnix.compiler = true;
+          # lint-prose checks this repo with the binary that the same commit builds.
+          tabnix.tablint = tablint;
+
+          tabnix.hooks.rust = {
+            name = "cargo fmt";
+            entry = "${pkgs.writeShellScript "cargo-fmt-check" ''
+              export PATH=${pkgs.cargo}/bin:${pkgs.rustfmt}/bin:$PATH
+              exec cargo fmt --check
+            ''}";
+            files = "\\.rs$";
+            pass_filenames = false;
+          };
+
+          packages.default = tablint;
+
+          checks.build = tablint;
+          checks.lint-rust = tablint.overrideAttrs (old: {
+            pname = "lint-rust";
+            nativeBuildInputs = old.nativeBuildInputs ++ [
+              pkgs.clippy
+              pkgs.rustfmt
+            ];
+            buildPhase = ''
+              cargo fmt --check
+              cargo clippy --all-targets --locked --offline -- -D warnings
+            '';
+            doCheck = false;
+            installPhase = "touch $out";
+          });
         };
-      });
-
-      checks = forEachSystem (pkgs: {
-        build = tablint pkgs;
-        lint-rust = (tablint pkgs).overrideAttrs (old: {
-          pname = "lint-rust";
-          nativeBuildInputs = old.nativeBuildInputs ++ [
-            pkgs.clippy
-            pkgs.rustfmt
-          ];
-          buildPhase = ''
-            cargo fmt --check
-            cargo clippy --all-targets --locked --offline -- -D warnings
-          '';
-          doCheck = false;
-          installPhase = "touch $out";
-        });
-        # tablint checks this repo with the binary that this commit builds.
-        lint-prose = check pkgs "lint-prose" [ (tablint pkgs) ] "tablint check";
-        lint-md = check pkgs "lint-md" [ pkgs.rumdl ] "rumdl check .";
-        lint-secrets = check pkgs "lint-secrets" [ pkgs.gitleaks ] "gitleaks dir . --no-banner";
-        lint-data = check pkgs "lint-data" [ (dprint pkgs) ] "DPRINT_CACHE_DIR=$TMPDIR/dprint dprint check";
-        lint-just = check pkgs "lint-just" [ pkgs.just ] "just --fmt --check";
-      });
-
-      formatter = forEachSystem (pkgs: pkgs.nixfmt);
     };
 }

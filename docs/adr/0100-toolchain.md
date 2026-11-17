@@ -26,7 +26,7 @@ tablint is also a tool that other repos install. The mechanism that pins its own
 
 ### Nix pins every tool
 
-`flake.nix` declares a dev shell with every tool of the repo. `flake.lock` pins `nixpkgs` and every other input, so every engineer, CI run, and machine gets the same tools.
+`flake.nix` imports the tabnix module, which holds the shared dev shell, git hooks, and checks. The repo adds only the Rust tools. `flake.lock` pins `nixpkgs` and every other input, so every engineer, CI run, and machine gets the same tools.
 
 | Tool | Owns |
 | --- | --- |
@@ -34,7 +34,8 @@ tablint is also a tool that other repos install. The mechanism that pins its own
 | Rust, with cargo, clippy, and rustfmt | The build, the Rust lint and format, and the tests |
 | `just` | Tasks |
 | Zed | The supported editor, with its project settings in `.zed/` |
-| `git-hooks.nix`, with `prek` | Git hooks, declared in `flake.nix` |
+| tabnix, with flake-parts | The shared dev shell, git hooks, and checks |
+| `git-hooks.nix`, with `prek` | Git hooks, declared through tabnix |
 | cocogitto | Commit message shape |
 | rumdl | Markdown style |
 | dprint | JSON, JSONC, TOML, and YAML format |
@@ -81,7 +82,7 @@ A recipe that calls a tool stops outside the dev shell, so no tool comes from `$
 
 Rust uses four spaces, per rustfmt. Every other formatter uses two spaces and LF line endings. The repo has no `.editorconfig`: the formatters and their checks are the only rules. `just format` runs every formatter, and a check in `flake.nix` fails on a file that is not formatted.
 
-dprint is one tool with one config for four file types. Its plugins are WebAssembly files from `nixpkgs`, pinned by `flake.lock`. dprint takes its config and plugins only as flags, so `flake.nix` wraps the `dprint` command to add both.
+dprint is one tool with one config for four file types. Its plugins are WebAssembly files from `nixpkgs`, pinned by `flake.lock`. dprint takes its config and plugins only as flags, so tabnix wraps the `dprint` command to add both.
 
 | Option for JSON, TOML, and YAML | Verdict |
 | --- | --- |
@@ -99,9 +100,9 @@ Every tool config lives in `.config/`. A file that its tool reads only at the ro
 | --- | --- |
 | rumdl | By itself |
 | tablint | By itself |
-| gitleaks | An environment variable that `flake.nix` sets |
+| gitleaks | An environment variable that tabnix sets |
 | cog | `--config` in every recipe, hook, and workflow |
-| dprint | The wrapper in `flake.nix` |
+| dprint | The wrapper in tabnix |
 
 The `just` recipes are the only supported way to run a tool. A tool that someone runs by hand without its flag is outside this contract.
 
@@ -109,7 +110,7 @@ The `just` recipes are the only supported way to run a tool. A tool that someone
 
 Every check is a derivation under `checks` in `flake.nix`. `nix flake check` builds each one in the Nix sandbox from the files that git tracks. So a local change that git does not track cannot make a check pass.
 
-The `build` check builds the package and runs `cargo test`. `lint-rust` runs rustfmt and clippy with every warning as an error. `lint-prose` runs tablint on this repo with the binary of the same commit. So a change to a rule meets this repo's own text first.
+The `build` check builds the package and runs `cargo test`. `lint-rust` runs rustfmt and clippy with every warning as an error. tabnix uses tablint, so this repo sets `tabnix.tablint` to its own build. `lint-prose` runs tablint on this repo with the binary of the same commit. So a change to a rule meets this repo's own text first.
 
 | When | What runs |
 | --- | --- |
@@ -151,7 +152,7 @@ Other editors use the same dev shell with no committed config. `just format` fix
 - Every task is a `just` recipe with a doc comment. A recipe that calls a tool runs only inside the dev shell.
 - Every check is a derivation under `checks` in `flake.nix`, and `just ci` is the only CI step after setup. `(CI: ci)`
 - `cargo clippy` runs with every warning as an error and the pedantic group on. `(CI: lint-rust)`
-- The git hooks are declared in `flake.nix`.
+- The git hooks are declared in `flake.nix`, through tabnix.
 - Every tracked text format has one formatter in the dev shell and a check in `flake.nix`. `(CI: ci)`
 - A file that a person reads or runs is visible at the root. Every tool config lives in `.config/`, unless its tool reads it only at the root.
 - The editor formats only with the formatters of the repo. No check depends on the editor.
