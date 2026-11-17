@@ -112,7 +112,7 @@ in
             enable = true;
             name = "cog check";
             entry = "${pkgs.writeShellScript "cog-check-range" ''
-              if ${pkgs.git}/bin/git rev-parse --quiet --verify origin/master > /dev/null; then
+              if ${pkgs.gitMinimal}/bin/git rev-parse --quiet --verify origin/master > /dev/null; then
                 exec ${cog} check origin/master..HEAD
               fi
               exec ${cog} check
