@@ -29,7 +29,7 @@ enum Command {
         /// The repository root.
         #[arg(default_value = ".")]
         root: PathBuf,
-        /// A config file other than `<root>/tablint.toml`.
+        /// A config file other than `<root>/.config/tablint.toml`.
         #[arg(long)]
         config: Option<PathBuf>,
     },

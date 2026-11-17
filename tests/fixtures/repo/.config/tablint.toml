@@ -1,4 +1,3 @@
-disable = ["annotation/task"]
 [adr]
 header-fields = ["status", "decides"]
 foreign = ["games"]

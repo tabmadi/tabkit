@@ -135,7 +135,7 @@ static ENGLISH: LazyLock<Vec<Pattern>> = LazyLock::new(|| {
         ),
         pattern(
             "simple/latin",
-            r"(?i)(\be\.g\.|\bi\.e\.|\betc\.|\bviz\.|\bcf\.|\bvs\.?(\s|$))",
+            r"(?i:\be\.g\.|\bi\.e\.|\betc\.|\bviz\.|\bcf\.)|\b[Vv]s\.?(\s|$)",
             "write `for example`, `that is`, a complete list, or `or`",
         ),
     ]
@@ -338,6 +338,8 @@ mod tests {
             assert_eq!(rules(bad), ["simple/complex-word"], "{bad}");
         }
         assert_eq!(rules("Use it, e.g. here."), ["simple/latin"]);
+        assert_eq!(rules("Tabs vs spaces."), ["simple/latin"]);
+        assert!(rules("Open it in VS Code.").is_empty());
         assert_eq!(rules("Don't do it. It's here."), ["simple/contraction"]);
         assert!(rules("We use it before the build, to help.").is_empty());
     }

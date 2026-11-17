@@ -14,32 +14,36 @@ tablint serves one owner's repositories. It is free to use under the Apache Lice
 | `comment` | Block length, paragraphs, commented-out code, author lines, banners, uncited `TODO`s, and doc comments that restate the name |
 | `adr` | The header, the one-sentence Decides line, the index, references, Related, and the section order |
 | `docs` | Genre directories, the docs root, repeated filenames, single-file directories, and links to untracked files |
-| `annotation` | A `(CI: <task>)` annotation names a `mise` task that exists |
+| `annotation` | A `(CI: <task>)` annotation names a recipe in `justfile` |
 
 `tablint rules` lists every rule ID. Comments are read in Go, TypeScript, JavaScript, Rust, Python, GDScript, shell, TOML, YAML, and SQL.
 
 ## Getting started
 
-1. Pin tablint in `.mise.toml`, at an exact version:
+1. Add tablint as a flake input, at a release tag:
 
-   ```toml
-   [tools]
-   "github:tabmadi/tablint" = "0.1.1"
+   ```nix
+   inputs.tablint = {
+     url = "github:tabmadi/tablint/v0.2.0";
+     inputs.nixpkgs.follows = "nixpkgs";
+   };
    ```
 
-2. Add a task:
+2. Add `tablint.packages.${system}.default` to the dev shell, and to a check under `checks`.
 
-   ```toml
-   [tasks."lint:tablint"]
-   description = "Prose, comments, and ADRs, per ADR-0001"
-   run = "tablint check"
+3. Add a recipe to `justfile`:
+
+   ```just
+   # Prose, comments, and ADRs, per ADR-0001
+   lint-prose: in-shell
+       tablint check
    ```
 
-3. Run it with `mise run lint:tablint`. Each finding is one line: `path:line: rule: message`.
+4. Run it with `just lint-prose`. Each finding is one line: `path:line: rule: message`.
 
 ## Configuration
 
-An empty `tablint.toml` runs every rule with its defaults. A key sets a path or turns a rule off:
+tablint reads `.config/tablint.toml`. An empty or missing file runs every rule with its defaults. A key sets a path or turns a rule off:
 
 ```toml
 exclude = ["vendor/**"]

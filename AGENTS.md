@@ -12,7 +12,7 @@ This guide is for any coding agent that works in this repo. `AGENTS.md` is the o
 
 ## Write in Simple English
 
-Every text follows the Simple English profile in [ADR-0001](docs/adr/0001-documentation-conventions.md#simple-english): docs, ADRs, comments, commit titles, and task descriptions. `mise run lint:tablint` checks it with the binary this repo builds.
+Every text follows the Simple English profile in [ADR-0001](docs/adr/0001-documentation-conventions.md#simple-english): docs, ADRs, comments, commit titles, and task descriptions. `just lint-prose` checks it with the binary this repo builds.
 
 - Use common words. One idea per sentence, at most 25 words.
 - In prose, use only period, comma, colon, and the possessive apostrophe. No em dash, semicolon, parentheses, or `?`.
@@ -26,13 +26,13 @@ Every text follows the Simple English profile in [ADR-0001](docs/adr/0001-docume
 | `src/repo.rs`, `src/markdown.rs`, `src/comments.rs` | The repository model: files, Markdown views, and comment blocks |
 | `src/simple.rs`, `src/constructs.rs` | The word lists and patterns of ADR-0001 |
 | `src/rules/` | One module per rule group, and `RULES`, the table of every rule ID |
-| `src/config.rs` | `tablint.toml` and its defaults |
+| `src/config.rs` | `.config/tablint.toml` and its defaults |
 | `tests/fixtures/` | Small repositories that break rules on purpose, with their exact output |
 
 ## Working in the repo
 
-- Run every command as `mise run <task>`. A bare tool call resolves from `PATH` at an unpinned version.
+- Work inside the dev shell: run `nix develop`, or allow direnv. Then run every task as `just <recipe>`.
 - A new rule gets an ID in `RULES`, a case in a fixture, and a line in the README table.
-- After a deliberate change to the output, run `TABLINT_BLESS=1 mise run test` and review the diff of the `.expected` files.
-- Before you finish a change, run `mise run check`.
+- After a deliberate change to the output, run `just bless` and review the diff of the `.expected` files.
+- Before you finish a change, run `just check`. `just ci` runs the full sandboxed gate that CI runs.
 - Commit messages are a Conventional Commits title only, with no body. Never push unless asked to.

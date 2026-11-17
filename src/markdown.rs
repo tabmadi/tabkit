@@ -324,7 +324,7 @@ impl Builder {
         }
     }
 
-    /// A link whose text is a path or a file name is code, and counts as one word.
+    /// A link whose text is one word names its target, such as a path or a tool, and counts as one word of code.
     fn end_link(&mut self, line: usize) {
         let Some(start) = self.links.pop() else {
             return;
@@ -335,7 +335,7 @@ impl Builder {
         let Some(label) = u.prose.text.get(start..) else {
             return;
         };
-        if !label.contains(' ') && label.contains(['/', '.']) {
+        if !label.trim().contains(' ') {
             u.prose.truncate(start);
             u.prose.push("x", line);
         }

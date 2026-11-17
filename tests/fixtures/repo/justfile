@@ -1,0 +1,9 @@
+import? 'scope/justfile'
+
+set shell := ["bash", "-c"]
+
+# Run every linter
+lint:
+    @echo lint
+
+alias l := lint

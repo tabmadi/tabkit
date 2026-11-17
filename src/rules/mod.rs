@@ -46,10 +46,7 @@ pub const RULES: &[(&str, &str)] = &[
         "simple/complex-word",
         "Prose uses the common word, such as `use` for `utilize`",
     ),
-    (
-        "simple/sentence-length",
-        "A sentence has at most 25 words, or 20 in a procedure",
-    ),
+    ("simple/sentence-length", "A sentence has at most 25 words"),
     (
         "construct/intensifier",
         "No intensifiers such as `very` or `just`",
@@ -134,7 +131,7 @@ pub const RULES: &[(&str, &str)] = &[
     ),
     (
         "annotation/task",
-        "A `(CI: <task>)` annotation names a mise task that exists",
+        "A `(CI: <task>)` annotation names a recipe in `justfile`",
     ),
 ];
 

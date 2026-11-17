@@ -1,9 +1,8 @@
 //! The layout of the docs/ set and the links between files, per ADR-0001.
 
+use anyhow::Result;
+use regex::Regex;
 use std::collections::BTreeMap;
-use std::process::Command;
-
-use anyhow::{Context, Result, bail};
 
 use super::Ctx;
 use crate::config::Paths;
@@ -12,7 +11,7 @@ use crate::finding::Finding;
 pub fn check(ctx: &Ctx<'_>) -> Result<Vec<Finding>> {
     let mut out = layout(ctx);
     out.extend(links(ctx)?);
-    out.extend(tasks(ctx)?);
+    out.extend(tasks(ctx));
     Ok(out)
 }
 
@@ -136,8 +135,8 @@ fn links(ctx: &Ctx<'_>) -> Result<Vec<Finding>> {
     Ok(out)
 }
 
-/// A `(CI: <task>)` annotation names a task, never the workflow file that calls it.
-fn tasks(ctx: &Ctx<'_>) -> Result<Vec<Finding>> {
+/// A `(CI: <task>)` annotation names a `just` recipe, never the workflow file that calls it.
+fn tasks(ctx: &Ctx<'_>) -> Vec<Finding> {
     let kinds = &ctx.cfg.annotations.task_kinds;
     let named: Vec<(&str, usize, &str)> = ctx
         .docs
@@ -149,39 +148,52 @@ fn tasks(ctx: &Ctx<'_>) -> Result<Vec<Finding>> {
         .filter(|(_, _, v)| *v != "<task>")
         .collect();
     if named.is_empty() || !ctx.cfg.enabled("annotation/task") {
-        return Ok(Vec::new());
+        return Vec::new();
     }
-    let tasks = mise_tasks(&ctx.repo.root)?;
-    Ok(named
+    let recipes = recipes(ctx, JUSTFILE);
+    named
         .into_iter()
-        .filter(|(_, _, task)| !tasks.iter().any(|t| t == task))
+        .filter(|(_, _, task)| !recipes.iter().any(|r| r == task))
         .map(|(path, line, task)| {
             Finding::new(
                 path,
                 line,
                 "annotation/task",
-                format!("`{task}` is not a mise task"),
+                format!("`{task}` is not a recipe in `{JUSTFILE}`"),
             )
         })
-        .collect())
+        .collect()
 }
 
-fn mise_tasks(root: &std::path::Path) -> Result<Vec<String>> {
-    let out = Command::new("mise")
-        .args(["tasks", "ls", "--json"])
-        .current_dir(root)
-        .output()
-        .context("run mise tasks ls")?;
-    if !out.status.success() {
-        bail!(
-            "mise tasks ls: {}",
-            String::from_utf8_lossy(&out.stderr).trim()
-        );
+const JUSTFILE: &str = "justfile";
+
+/// The recipe and alias names of a justfile, and of every justfile it imports. A missing file has none.
+fn recipes(ctx: &Ctx<'_>, path: &str) -> Vec<String> {
+    let header =
+        Regex::new(r"^@?([A-Za-z_][A-Za-z0-9_-]*)[^:=]*:([^=]|$)").expect("a valid pattern");
+    let alias = Regex::new(r"^alias\s+([A-Za-z_][A-Za-z0-9_-]*)\s*:=").expect("a valid pattern");
+    let import = Regex::new(r#"^import\??\s+['"]([^'"]+)['"]"#).expect("a valid pattern");
+    let Some(text) = ctx.repo.read(path) else {
+        return Vec::new();
+    };
+    let dir = path.rsplit_once('/').map_or("", |(d, _)| d);
+    let mut names = Vec::new();
+    for line in text.lines() {
+        if let Some(m) = import.captures(line) {
+            let target = if dir.is_empty() {
+                m[1].to_owned()
+            } else {
+                format!("{dir}/{}", &m[1])
+            };
+            names.extend(recipes(ctx, &target));
+        } else if let Some(m) = alias.captures(line) {
+            names.push(m[1].to_owned());
+        } else if !line.starts_with("set ")
+            && !line.starts_with("export ")
+            && let Some(m) = header.captures(line)
+        {
+            names.push(m[1].to_owned());
+        }
     }
-    let tasks: Vec<serde_json::Value> =
-        serde_json::from_slice(&out.stdout).context("parse mise tasks ls")?;
-    Ok(tasks
-        .iter()
-        .filter_map(|t| t["name"].as_str().map(str::to_owned))
-        .collect())
+    names
 }

@@ -6,7 +6,7 @@ use anyhow::{Context, Result};
 use globset::{Glob, GlobSet, GlobSetBuilder};
 use serde::Deserialize;
 
-pub const FILE_NAME: &str = "tablint.toml";
+pub const FILE_NAME: &str = ".config/tablint.toml";
 
 #[derive(Debug, Default, Deserialize)]
 #[serde(default, deny_unknown_fields, rename_all = "kebab-case")]
@@ -29,9 +29,6 @@ pub struct Prose {
     /// Text adopted from a third party. No prose rule and no character rule reads it.
     pub verbatim: Vec<String>,
     pub max_words: usize,
-    pub procedure_max_words: usize,
-    /// Documents whose every sentence is a procedure step.
-    pub procedure_paths: Vec<String>,
     /// Documents that name the banned constructs, such as the ADR that bans them.
     pub constructs_exempt: Vec<String>,
     /// Documents whose subject is live state, so `currently` is the fact.
@@ -48,12 +45,10 @@ impl Default for Prose {
             verbatim: strings(&[
                 "LICENSE",
                 "**/CHANGELOG.md",
-                "CODE_OF_CONDUCT.md",
+                ".github/CODE_OF_CONDUCT.md",
                 "**/*.local.md",
             ]),
             max_words: 25,
-            procedure_max_words: 20,
-            procedure_paths: strings(&["docs/guide/**"]),
             constructs_exempt: strings(&["docs/adr/0001-*.md", "docs/adr/_template.md"]),
             status_exempt: Vec::new(),
             slash_terms: strings(&["ci/cd", "i/o", "tcp/ip"]),
@@ -194,7 +189,7 @@ impl Default for Messages {
 #[derive(Debug, Deserialize)]
 #[serde(default, deny_unknown_fields, rename_all = "kebab-case")]
 pub struct Annotations {
-    /// Annotation kinds whose values are `mise` task names, such as `CI` in `(CI: lint)`.
+    /// Annotation kinds whose values are `just` recipe names, such as `CI` in `(CI: lint)`.
     pub task_kinds: Vec<String>,
 }
 
@@ -207,7 +202,7 @@ impl Default for Annotations {
 }
 
 impl Config {
-    /// Reads `tablint.toml` from the root, or returns the defaults when the file is absent.
+    /// Reads `.config/tablint.toml` under the root, or returns the defaults when the file is absent.
     pub fn load(root: &Path, explicit: Option<&Path>) -> Result<Self> {
         let path = explicit.map_or_else(|| root.join(FILE_NAME), Path::to_path_buf);
         if explicit.is_none() && !path.exists() {

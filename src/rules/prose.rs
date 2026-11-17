@@ -22,7 +22,6 @@ static YEAR: LazyLock<Regex> =
 
 pub fn check(ctx: &Ctx<'_>) -> Result<Vec<Finding>> {
     let p = &ctx.cfg.prose;
-    let procedure = Paths::new(&p.procedure_paths)?;
     let exempt = Paths::new(&p.constructs_exempt)?;
     let status_exempt = Paths::new(&p.status_exempt)?;
     let mut ignore = vec![ANNOTATION.clone()];
@@ -31,21 +30,15 @@ pub fn check(ctx: &Ctx<'_>) -> Result<Vec<Finding>> {
     }
     let mut out = Vec::new();
     for (&path, doc) in ctx.docs.iter().filter(|(p, _)| !ctx.skipped.matches(p)) {
-        let all_steps = procedure.matches(path);
         for unit in &doc.units {
             let mut prose = unit.prose.clone();
             for re in &ignore {
                 prose.blank(re);
             }
-            let max_words = if all_steps {
-                p.procedure_max_words
-            } else {
-                p.max_words
-            };
             let opts = Options {
                 english: true,
                 word_slash: true,
-                max_words,
+                max_words: p.max_words,
                 slash_terms: &p.slash_terms,
             };
             for h in simple::check(&prose.text, &opts) {
