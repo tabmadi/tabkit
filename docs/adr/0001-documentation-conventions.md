@@ -89,7 +89,7 @@ The README of each kind of repo has these sections, in this order. A section wit
 
 | Kind of repo | README sections |
 | --- | --- |
-| Template | Stack, Getting started, Editor, Tasks, Layout, Configuration, Using this template, Decisions, Contributing, Security, License |
+| Template | Stack, Getting started, Editor, Tasks, Layout, Configuration, Starting a project, Decisions, Contributing, Security, License |
 | Example | What it shows, Run it, How it works, What is missing, Tasks, License |
 | Platform | Find your profile, What forces decomposition, When not to use this, Stack, Getting started, Layout, Decisions, Using this repo, License |
 | Tool | What it does, Getting started, Configuration, Decisions, License |
