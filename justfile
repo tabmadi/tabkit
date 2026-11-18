@@ -13,7 +13,7 @@ setup:
 # Apply every formatter
 format: in-shell
     rumdl check --fix .
-    nix fmt flake.nix modules/default.nix
+    nix fmt flake.nix modules/*.nix nixos/*.nix tests/*.nix
     dprint fmt
     just --fmt
 
@@ -35,7 +35,7 @@ lint-data: in-shell
 
 # Nix format, per ADR-0100
 lint-nix: in-shell
-    nixfmt --check flake.nix modules/*.nix
+    nixfmt --check flake.nix modules/*.nix nixos/*.nix tests/*.nix
 
 # justfile format, per ADR-0100
 lint-just:
@@ -51,7 +51,7 @@ test:
 # The fast gate: run it before you finish a change
 check: lint test
 
-# Run exactly what CI runs: every check of flake.nix, in the Nix sandbox
+# Run exactly what CI runs: every check of flake.nix, in the Nix sandbox. On Linux it boots the nixosTests
 ci:
     nix flake check --print-build-logs
 

@@ -29,6 +29,21 @@
       {
         imports = [ module ];
         flake.flakeModules.default = module;
+
+        # The NixOS modules of ADR-0300. A repo imports one only on a machine that it runs.
+        flake.nixosModules.mtls-gate = ./nixos/mtls-gate.nix;
+
+        # The nixosTests boot VMs, so they live here and not in the module that every repo imports.
+        perSystem =
+          { pkgs, lib, ... }:
+          {
+            checks = lib.optionalAttrs pkgs.stdenv.hostPlatform.isLinux {
+              mtls-gate = import ./tests/mtls-gate.nix {
+                inherit pkgs;
+                module = ./nixos/mtls-gate.nix;
+              };
+            };
+          };
       }
     );
 }

@@ -9,7 +9,7 @@ The owner's repos use one toolchain shape. Each repo held its own copy of the sa
 
 ## Decision
 
-tabnix holds the Nix code that every repo shares, per [ADR-0200](0200-module.md). A repo imports it and adds only its language tools. The docs and the configs stay in each repo, because a reader needs them in place.
+tabnix holds the Nix code that every repo shares, per [ADR-0200](0200-module.md). It also ships opt-in NixOS modules for the machines that a repo runs, per [ADR-0300](0300-nixos-modules.md). A repo imports it and adds only its language tools. The docs and the configs stay in each repo, because a reader needs them in place.
 
 **It serves its owner.** The defaults are the owner's opinion. The code is public under the Apache License 2.0, and it makes no promise of support or compatibility.
 
