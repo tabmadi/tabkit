@@ -13,7 +13,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     tablint = {
-      url = "github:tabmadi/tablint/v0.2.0";
+      url = "github:tabmadi/tablint/v0.3.0";
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.git-hooks.follows = "git-hooks";
     };
