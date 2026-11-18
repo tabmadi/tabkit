@@ -27,7 +27,7 @@ tabnix serves its owner. It is free to use under the Apache License 2.0, but it 
        inputs.nixpkgs-lib.follows = "nixpkgs";
      };
      tabnix = {
-       url = "github:tabmadi/tabnix/v0.1.0";
+       url = "github:tabmadi/tabnix/v0.2.0";
        inputs.nixpkgs.follows = "nixpkgs";
        inputs.flake-parts.follows = "flake-parts";
      };
