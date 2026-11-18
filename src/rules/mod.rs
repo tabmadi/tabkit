@@ -7,6 +7,7 @@ mod comment;
 mod docs;
 mod messages;
 mod prose;
+mod requirement;
 
 use std::collections::BTreeMap;
 
@@ -130,6 +131,30 @@ pub const RULES: &[(&str, &str)] = &[
         "No link goes from the configured documents to a forbidden target",
     ),
     (
+        "requirement/prefix",
+        "A requirements file declares its own unique prefix of two to four capital letters",
+    ),
+    (
+        "requirement/row",
+        "A requirement is one table row: an ID with the prefix of the file, then one sentence",
+    ),
+    (
+        "requirement/ears",
+        "A requirement opens with an EARS keyword: The, When, While, If, or Where",
+    ),
+    (
+        "requirement/empty",
+        "A requirements file holds a requirement",
+    ),
+    (
+        "requirement/untested",
+        "Every requirement has a test that cites its ID",
+    ),
+    (
+        "requirement/unknown",
+        "Every ID that a test cites names a requirement",
+    ),
+    (
         "annotation/task",
         "A `(CI: <task>)` annotation names a recipe in `justfile`",
     ),
@@ -191,6 +216,7 @@ pub fn run(repo: &Repo, cfg: &Config) -> Result<Vec<Finding>> {
     found.extend(adr::check(&ctx));
     found.extend(docs::check(&ctx)?);
     found.extend(messages::check(&ctx)?);
+    found.extend(requirement::check(&ctx)?);
     found.retain(|f| cfg.enabled(f.rule) && !allowed(&ctx, f));
     found.sort();
     found.dedup();

@@ -21,6 +21,7 @@ pub struct Config {
     pub docs: Docs,
     pub messages: Messages,
     pub annotations: Annotations,
+    pub requirements: Requirements,
 }
 
 #[derive(Debug, Deserialize)]
@@ -197,6 +198,40 @@ impl Default for Annotations {
     fn default() -> Self {
         Self {
             task_kinds: strings(&["CI", "check"]),
+        }
+    }
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(default, deny_unknown_fields, rename_all = "kebab-case")]
+pub struct Requirements {
+    /// The requirements files, as globs. A `README.md` among them is an index, not a requirements file.
+    pub files: Vec<String>,
+    /// The test files whose IDs count as citations, as globs.
+    pub tests: Vec<String>,
+    /// The starting files that a new module copies. They use the template prefix, and no test cites them.
+    pub template_files: Vec<String>,
+    /// The placeholder prefix of the starting files.
+    pub template_prefix: String,
+}
+
+impl Default for Requirements {
+    fn default() -> Self {
+        Self {
+            files: strings(&["**/requirements.md", "docs/requirements/*.md"]),
+            tests: strings(&[
+                "**/*_test.go",
+                "**/*.test.ts",
+                "**/*.test.tsx",
+                "**/*.spec.ts",
+                "**/*.spec.tsx",
+                "**/*.test.js",
+                "**/test_*.py",
+                "**/*_test.py",
+                "**/tests/**/*.rs",
+            ]),
+            template_files: strings(&["**/_template/**"]),
+            template_prefix: "TPL".into(),
         }
     }
 }

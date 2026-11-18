@@ -14,6 +14,7 @@ tablint serves one owner's repositories. It is free to use under the Apache Lice
 | `comment` | Block length, paragraphs, commented-out code, author lines, banners, uncited `TODO`s, and doc comments that restate the name |
 | `adr` | The header, the one-sentence Decides line, the index, references, Related, and the section order |
 | `docs` | Genre directories, the docs root, repeated filenames, single-file directories, and links to untracked files |
+| `requirement` | In `requirements.md` and `docs/requirements/`: the prefix, the row form, the EARS keyword, and an ID that a test cites. The rules act only when a requirements file exists |
 | `annotation` | A `(CI: <task>)` annotation names a recipe in `justfile` |
 
 `tablint rules` lists every rule ID. Comments are read in Go, TypeScript, JavaScript, Rust, Python, GDScript, shell, TOML, YAML, and SQL.
@@ -32,7 +33,7 @@ Another repo adds tablint as a flake input, at a release tag:
 
 ```nix
 inputs.tablint = {
-  url = "github:tabmadi/tablint/v0.2.0";
+  url = "github:tabmadi/tablint/v0.3.0";
   inputs.nixpkgs.follows = "nixpkgs";
 };
 ```
@@ -57,6 +58,9 @@ root-files = ["README.md", "tool-register.md"]
 
 [messages]
 dir = "apps/frontend/src/messages"
+
+[requirements]
+tests = ["**/*.test.ts", "e2e/**/*.spec.ts"]
 ```
 
 A line opts out of every rule with `tablint:allow`, in an HTML comment in Markdown or in a comment in code.
