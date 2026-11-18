@@ -150,6 +150,11 @@ in
           default = false;
           description = "Whether the dev shell holds a C compiler, which a cargo or cgo build needs.";
         };
+        env = mkOption {
+          type = types.attrsOf types.str;
+          default = { };
+          description = "The environment variables of the repo. They join the variables of the base dev shell.";
+        };
         tablint = mkOption {
           type = types.package;
           default = localInputs.tablint.packages.${system}.default;
@@ -176,7 +181,7 @@ in
             pkgs.nixfmt
           ]
           ++ cfg.packages;
-          env = configEnv;
+          env = configEnv // cfg.env;
           shellHook = hooks.shellHook;
         };
 

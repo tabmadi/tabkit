@@ -23,6 +23,7 @@ Each repo needs the same base and its own language parts. The base must merge wi
 | `tabnix.packages` | Adds the language tools to the dev shell |
 | `tabnix.hooks` | Adds hooks in the git-hooks.nix format |
 | `tabnix.compiler` | Puts a C compiler in the dev shell |
+| `tabnix.env` | Sets environment variables in the dev shell, such as the library path that a Python wheel with native code needs |
 | `tabnix.tablint` | Sets the tablint binary |
 | `tabnix.check` | Read only. Makes a check that runs on a copy of the tracked files |
 

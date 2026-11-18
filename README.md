@@ -27,7 +27,7 @@ tabnix serves its owner. It is free to use under the Apache License 2.0, but it 
        inputs.nixpkgs-lib.follows = "nixpkgs";
      };
      tabnix = {
-       url = "github:tabmadi/tabnix/v0.2.0";
+       url = "github:tabmadi/tabnix/v0.3.0";
        inputs.nixpkgs.follows = "nixpkgs";
        inputs.flake-parts.follows = "flake-parts";
      };
@@ -57,6 +57,7 @@ tabnix serves its owner. It is free to use under the Apache License 2.0, but it 
 | `tabnix.packages` | Adds the language tools of the repo to the dev shell |
 | `tabnix.hooks` | Adds hooks in the git-hooks.nix format. Each one is enabled |
 | `tabnix.compiler` | Puts a C compiler in the dev shell, for a cargo or cgo build |
+| `tabnix.env` | Sets environment variables in the dev shell, beside the ones that tabnix sets |
 | `tabnix.tablint` | Sets the tablint binary. The tablint repo sets its own build |
 | `tabnix.check` | Read only. Makes a check from a name, a list of tools, and a command |
 
