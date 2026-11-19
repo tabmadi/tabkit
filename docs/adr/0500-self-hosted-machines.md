@@ -91,6 +91,8 @@ Each guest reads its secrets at `/run/host-secrets`, a read-only share. A unit o
 | `activationTimeout` | The time for an activation, by default 900 seconds, so a restart of every guest fits |
 | `confirmTimeout` | The time that the node waits for a new SSH connection before it rolls back, by default 300 seconds |
 
+**The first deploy after an install changes nothing.** A rollback of deploy-rs reactivates the previous generation with the activation script of deploy-rs. A generation that the installer made has no such script, so a rollback to it fails and the machine stays on the broken config. A QEMU copy of a host proved this.
+
 **A release upgrade of NixOS is a deploy for the next boot, then a reboot.** A live switch across releases can fail, as the pilot found. Run `deploy --boot`, then reboot the machine.
 
 **Each module has a test.** The nixosTest `server` proves that a password never logs in and that a closed port stays closed. The nixosTest `microvm-host` boots two nested guests. It proves that a port that no flow names is closed, and that a flow opens one direction only. It proves that only a guest with egress reaches beyond the host, and only a published port reaches a guest from beyond the host. It proves that a guest cannot change its secrets or read the secrets of another guest. The check `module-deploy` builds a fixture node, asserts the rollback settings, and runs the checks of deploy-rs.
@@ -111,5 +113,6 @@ The installer of the host and the layout of its disks stay in the repo, because 
 - A guest is a `tabnix.microvmHost.guests` entry, and a connection between guests is a `tabnix.microvmHost.flows` entry. No rule of the repo opens the forward chain by hand.
 - A secret of a guest is a path at run time outside the Nix store, and the module asserts it.
 - A repo deploys a machine through `flakeModules.deploy`, with magic rollback on. `(CI: ci)`
+- The first deploy after an install deploys the installed config again, so that a rollback has a generation of deploy-rs to return to.
 - A release upgrade of NixOS is `deploy --boot` and a reboot, never a live switch.
 - The nixosTests `server` and `microvm-host` and the check `module-deploy` run in CI. `(CI: ci)`
