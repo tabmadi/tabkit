@@ -10,6 +10,7 @@ This guide is for any coding agent that works in this repo. `AGENTS.md` is the o
 - [ADR-0000](docs/adr/0000-foundations.md): what this repo is and the ADR process.
 - [ADR-0300](docs/adr/0300-nixos-modules.md): the NixOS modules and their nixosTests.
 - [ADR-0400](docs/adr/0400-opt-in-flake-modules.md): the opt-in flake modules and their checks.
+- [ADR-0500](docs/adr/0500-self-hosted-machines.md): the server base, the microVM host, and the deploy.
 - [docs/adr/README.md](docs/adr/README.md): the ADR index. To check a convention, grep the `Rules` sections first.
 
 ## Write in Simple English

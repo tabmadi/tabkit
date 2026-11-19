@@ -22,6 +22,16 @@
       url = "github:nix-community/bun2nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    # The deploy module of ADR-0500. A deploy that loses SSH rolls back by itself.
+    deploy-rs = {
+      url = "github:serokell/deploy-rs";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    # The microvm-host module of ADR-0500 runs each guest with microvm.nix.
+    microvm = {
+      url = "github:microvm-nix/microvm.nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs =
@@ -32,17 +42,23 @@
         module = flake-parts-lib.importApply ./modules/default.nix inputs;
         bun = flake-parts-lib.importApply ./modules/bun.nix inputs;
         template = ./modules/template.nix;
+        deploy = flake-parts-lib.importApply ./modules/deploy.nix inputs;
+        microvmHost = flake-parts-lib.importApply ./nixos/microvm-host.nix inputs;
       in
       {
         imports = [ module ];
         flake.flakeModules = {
           default = module;
           # The opt-in modules of ADR-0400. A repo imports one only when it has the part.
-          inherit bun template;
+          inherit bun deploy template;
         };
 
-        # The NixOS modules of ADR-0300. A repo imports one only on a machine that it runs.
-        flake.nixosModules.mtls-gate = ./nixos/mtls-gate.nix;
+        # The NixOS modules of ADR-0300 and ADR-0500. A repo imports one only on a machine that it runs.
+        flake.nixosModules = {
+          mtls-gate = ./nixos/mtls-gate.nix;
+          server = ./nixos/server.nix;
+          microvm-host = microvmHost;
+        };
 
         # The checks of the modules live here, not in the module that every repo imports. The nixosTests boot VMs.
         perSystem =
@@ -62,9 +78,20 @@
               };
             }
             // lib.optionalAttrs pkgs.stdenv.hostPlatform.isLinux {
+              module-deploy = import ./tests/deploy.nix {
+                inherit pkgs inputs deploy;
+              };
               mtls-gate = import ./tests/mtls-gate.nix {
                 inherit pkgs;
                 module = ./nixos/mtls-gate.nix;
+              };
+              server = import ./tests/server.nix {
+                inherit pkgs;
+                module = ./nixos/server.nix;
+              };
+              microvm-host = import ./tests/microvm-host.nix {
+                inherit pkgs;
+                module = microvmHost;
               };
             };
           };

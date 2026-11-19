@@ -10,5 +10,6 @@ Each ADR has a one-sentence **Decides** line and ends with a flat **Rules** sect
 | [0200](0200-module.md) | tabnix is one flake-parts module that sets the base dev shell, the shared hooks, and the shared checks, and a repo extends it through options |
 | [0300](0300-nixos-modules.md) | tabnix ships opt-in NixOS modules for the machines that a repo runs, and a nixosTest in CI proves each refusal of each module |
 | [0400](0400-opt-in-flake-modules.md) | Nix code that only some repos share ships as an opt-in flake-parts module, with a check that runs it on a fixture |
+| [0500](0500-self-hosted-machines.md) | A repo that runs its own machine takes the server base, the microVM host, and the deploy from tabnix, and a test proves each refusal |
 
 A new ADR starts from [`_template.md`](_template.md).

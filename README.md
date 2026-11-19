@@ -13,8 +13,8 @@ tabnix serves its owner. It is free to use under the Apache License 2.0, but it 
 | Checks | `lint-prose`, `lint-md`, `lint-secrets`, `lint-data`, `lint-nix`, and `lint-just` |
 | `formatter` | nixfmt |
 | `systems` | Linux and macOS, on x86-64 and ARM |
-| Opt-in flake modules | `template`, for a template repo, and `bun`, for a repo on Bun. Each one has a check |
-| NixOS modules | `mtls-gate`, for the machines that a repo runs. Each one has a nixosTest |
+| Opt-in flake modules | `template`, for a template repo, `bun`, for a repo on Bun, and `deploy`, for a repo that deploys its own machines. Each one has a check |
+| NixOS modules | `server`, `microvm-host`, and `mtls-gate`, for the machines that a repo runs. Each one has a nixosTest |
 
 ## Getting started
 
@@ -96,9 +96,56 @@ perSystem = { pkgs, config, ... }: {
 };
 ```
 
+`deploy` deploys each `nixosConfiguration` of the repo with deploy-rs. A deploy that loses SSH rolls back by itself:
+
+```nix
+imports = [ tabnix.flakeModules.deploy ];
+tabnix.deploy.nodes.host.hostname = "203.0.113.10";
+```
+
 ## NixOS modules
 
-A repo that runs its own machines on NixOS imports a module in its host configuration. The toolchain module never loads them. [ADR-0300](docs/adr/0300-nixos-modules.md) lists the options of each module.
+A repo that runs its own machines on NixOS imports a module in its host configuration. The toolchain module never loads them. [ADR-0300](docs/adr/0300-nixos-modules.md) and [ADR-0500](docs/adr/0500-self-hosted-machines.md) list the options of each module.
+
+`server` sets SSH with keys only, the nftables firewall, and Nix with flakes. `microvm-host` runs each guest as a microVM with one routed tap, and the host drops every connection between guests that no flow declares:
+
+```nix
+modules = [
+  tabnix.nixosModules.server
+  tabnix.nixosModules.microvm-host
+  {
+    tabnix.server = {
+      enable = true;
+      adminKeys = [ "ssh-ed25519 AAAA... admin" ];
+    };
+    tabnix.microvmHost = {
+      enable = true;
+      gateway = "10.20.0.1";
+      uplink = "eth0";
+      guests.app = {
+        address = "10.20.0.10";
+        mac = "02:00:00:00:00:10";
+        egress = true;
+        publish = [ 443 ];
+        config = ./guests/app.nix;
+      };
+      guests.db = {
+        address = "10.20.0.20";
+        mac = "02:00:00:00:00:20";
+        secrets."db.env" = "/run/secrets/db.env";
+        config = ./guests/db.nix;
+      };
+      flows = [
+        {
+          from = "app";
+          to = "db";
+          ports = [ 5432 ];
+        }
+      ];
+    };
+  }
+];
+```
 
 `mtls-gate` puts nginx in front of a local service. A request reaches the service only with a client certificate that one CA signs, and only from a listed address:
 
