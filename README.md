@@ -12,7 +12,7 @@ tabnix serves its owner. It is free to use under the Apache License 2.0, but it 
 | Git hooks | tablint, rumdl, dprint, nixfmt, `just --fmt`, gitleaks, `cog verify`, `cog check`, and `just ci` |
 | Checks | `lint-prose`, `lint-md`, `lint-secrets`, `lint-data`, `lint-nix`, and `lint-just` |
 | `formatter` | nixfmt |
-| `systems` | Linux and macOS, on x86-64 and ARM |
+| `systems` | Linux, on x86-64 and ARM. Linux is the one supported platform |
 | Opt-in flake modules | `template`, for a template repo, `bun`, for a repo on Bun, and `deploy`, for a repo that deploys its own machines. Each one has a check |
 | NixOS modules | `server`, `microvm-host`, and `mtls-gate`, for the machines that a repo runs. Each one has a nixosTest |
 
