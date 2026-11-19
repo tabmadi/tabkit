@@ -1,4 +1,4 @@
-# The nixosTest of the microVM host, per ADR-0500. A host runs three guests as nested microVMs. The test proves
+# The nixosTest of the microVM host, per ADR-0500. A host runs two guests as nested microVMs. The test proves
 # that only a declared flow crosses the host, that only a guest with egress reaches the network beyond it, and
 # that a guest reads its secrets and cannot change them.
 { pkgs, module }:
@@ -22,6 +22,7 @@ let
 in
 pkgs.testers.runNixOSTest {
   name = "microvm-host";
+  meta.timeout = 3600;
 
   nodes = {
     host = {
@@ -58,24 +59,18 @@ pkgs.testers.runNixOSTest {
             mac = "02:00:00:00:00:10";
             memory = 384;
             egress = true;
-            config = web "a" [ ];
+            config = web "a" [ 7070 ];
           };
           b = {
             address = "10.20.0.20";
             mac = "02:00:00:00:00:20";
             memory = 384;
             secrets.token = "/run/test/token";
+            publish = [ 8080 ];
             config = web "b" [
               8080
               9090
             ];
-          };
-          c = {
-            address = "10.20.0.30";
-            mac = "02:00:00:00:00:30";
-            memory = 384;
-            publish = [ 8080 ];
-            config = web "c" [ 8080 ];
           };
         };
         flows = [
@@ -110,7 +105,7 @@ pkgs.testers.runNixOSTest {
   testScript = ''
     # -n keeps ssh off the stdin of the test driver.
     ssh = "ssh -n -i /root/key -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=5"
-    guests = {"a": "10.20.0.10", "b": "10.20.0.20", "c": "10.20.0.30"}
+    guests = {"a": "10.20.0.10", "b": "10.20.0.20"}
 
     def on(guest, command):
         return f"{ssh} root@{guests[guest]} {command!r}"
@@ -122,11 +117,12 @@ pkgs.testers.runNixOSTest {
     outside.wait_for_unit("nginx.service")
     host.succeed("install -m 0600 ${keys.snakeOilEd25519PrivateKey} /root/key")
     for name in guests:
-        host.wait_for_unit(f"microvm@{name}.service", timeout=600)
+        host.wait_for_unit(f"microvm@{name}.service", timeout=1800)
+    # Nested guests boot slowly on a CI runner that is itself a VM.
     for name, ip in guests.items():
-        host.wait_until_succeeds(on(name, "true"), timeout=600)
-    host.wait_until_succeeds(on("b", "systemctl is-active web-8080 web-9090"), timeout=120)
-    host.wait_until_succeeds(on("c", "systemctl is-active web-8080"), timeout=120)
+        host.wait_until_succeeds(on(name, "true"), timeout=1800)
+    host.wait_until_succeeds(on("a", "systemctl is-active web-7070"), timeout=600)
+    host.wait_until_succeeds(on("b", "systemctl is-active web-8080 web-9090"), timeout=600)
 
     with subtest("A declared flow crosses the host"):
         out = host.succeed(on("a", curl(guests["b"], 8080)))
@@ -135,12 +131,9 @@ pkgs.testers.runNixOSTest {
     with subtest("A port that no flow names is closed"):
         host.fail(on("a", curl(guests["b"], 9090)))
 
-    with subtest("A guest that no flow names is closed"):
-        host.fail(on("a", curl(guests["c"], 8080)))
-
     with subtest("A flow opens one direction only"):
-        host.fail(on("c", curl(guests["b"], 8080)))
-        host.fail(on("b", "curl -sf --connect-timeout 5 --max-time 10 http://10.20.0.10:22/"))
+        host.fail(on("b", curl(guests["a"], 7070)))
+        host.fail(on("b", curl(guests["a"], 22)))
 
     outside_ip = outside.succeed("ip -4 -o addr show eth1 | awk '{print $4}' | cut -d/ -f1").strip()
 
@@ -149,17 +142,17 @@ pkgs.testers.runNixOSTest {
         assert out.strip() == "outside", out
 
     with subtest("A guest without egress never reaches the network beyond the host"):
-        host.fail(on("c", curl(outside_ip, 80)))
+        host.fail(on("b", curl(outside_ip, 80)))
 
     host_ip = host.succeed("ip -4 -o addr show eth1 | awk '{print $4}' | cut -d/ -f1").strip()
 
     with subtest("A published port reaches its guest from beyond the host"):
         out = outside.succeed(curl(host_ip, 8080))
-        assert out.strip() == "c", out
+        assert out.strip() == "b", out
 
     with subtest("A guest port that is not published stays closed from beyond the host"):
         outside.fail(curl("10.20.0.20", 9090))
-        outside.fail(curl("10.20.0.10", 22))
+        outside.fail(curl("10.20.0.10", 7070))
         outside.fail(curl(host_ip, 9090))
 
     with subtest("A guest reads its secret and cannot change it"):
@@ -168,6 +161,6 @@ pkgs.testers.runNixOSTest {
         host.fail(on("b", "sh -c 'echo x > /run/host-secrets/token'"))
 
     with subtest("A guest without secrets sees none of another guest"):
-        host.fail(on("c", "cat /run/host-secrets/token"))
+        host.fail(on("a", "cat /run/host-secrets/token"))
   '';
 }

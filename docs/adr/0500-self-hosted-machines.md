@@ -93,11 +93,11 @@ Each guest reads its secrets at `/run/host-secrets`, a read-only share. A unit o
 
 **A release upgrade of NixOS is a deploy for the next boot, then a reboot.** A live switch across releases can fail, as the pilot found. Run `deploy --boot`, then reboot the machine.
 
-**Each module has a test.** The nixosTest `server` proves that a password never logs in and that a closed port stays closed. The nixosTest `microvm-host` boots three nested guests. It proves that a port or a guest that no flow names is closed, and that a flow opens one direction only. It proves that only a guest with egress reaches beyond the host, and only a published port reaches a guest from beyond the host. It proves that a guest cannot change its secrets or read the secrets of another guest. The check `module-deploy` builds a fixture node, asserts the rollback settings, and runs the checks of deploy-rs.
+**Each module has a test.** The nixosTest `server` proves that a password never logs in and that a closed port stays closed. The nixosTest `microvm-host` boots two nested guests. It proves that a port that no flow names is closed, and that a flow opens one direction only. It proves that only a guest with egress reaches beyond the host, and only a published port reaches a guest from beyond the host. It proves that a guest cannot change its secrets or read the secrets of another guest. The check `module-deploy` builds a fixture node, asserts the rollback settings, and runs the checks of deploy-rs.
 
 ## Consequences
 
-The host runs nested KVM in CI and on a laptop. A machine without KVM runs the guests in software, which is slow.
+The host runs nested KVM in CI and on a laptop. On a CI runner that is itself a VM, the guests are three levels deep. They boot slowly, so the test waits up to 30 minutes.
 
 A repo takes the versions of microvm.nix and deploy-rs that tabnix pins.
 
