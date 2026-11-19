@@ -26,14 +26,14 @@ pkgs.testers.runNixOSTest {
   nodes = {
     host = {
       imports = [ module ];
-      # The guests boot with KVM inside this VM.
       virtualisation = {
         cores = 4;
         memorySize = 3072;
         diskSize = 4096;
+        # The host CPU passes VMX or SVM through, so the guests run under KVM, not in software.
         qemu.options = [
           "-cpu"
-          "kvm64,+svm,+vmx"
+          "host"
         ];
       };
       networking.nftables.enable = true;
