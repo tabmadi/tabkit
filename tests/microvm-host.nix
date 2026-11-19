@@ -22,7 +22,6 @@ let
 in
 pkgs.testers.runNixOSTest {
   name = "microvm-host";
-  meta.timeout = 3600;
 
   nodes = {
     host = {
@@ -117,10 +116,10 @@ pkgs.testers.runNixOSTest {
     outside.wait_for_unit("nginx.service")
     host.succeed("install -m 0600 ${keys.snakeOilEd25519PrivateKey} /root/key")
     for name in guests:
-        host.wait_for_unit(f"microvm@{name}.service", timeout=1800)
+        host.wait_for_unit(f"microvm@{name}.service", timeout=600)
     # Nested guests boot slowly on a CI runner that is itself a VM.
     for name, ip in guests.items():
-        host.wait_until_succeeds(on(name, "true"), timeout=1800)
+        host.wait_until_succeeds(on(name, "true"), timeout=600)
     host.wait_until_succeeds(on("a", "systemctl is-active web-7070"), timeout=600)
     host.wait_until_succeeds(on("b", "systemctl is-active web-8080 web-9090"), timeout=600)
 

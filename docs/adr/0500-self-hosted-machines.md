@@ -99,7 +99,9 @@ Each guest reads its secrets at `/run/host-secrets`, a read-only share. A unit o
 
 ## Consequences
 
-The host runs nested KVM in CI and on a laptop. On a CI runner that is itself a VM, the guests are three levels deep. They boot slowly, so the test waits up to 30 minutes.
+**The `microvm-host` test is not a CI check.** Its guests run inside the test VM. A GitHub runner is a VM itself, so there a guest is three levels deep, and it hangs at boot. The test is the package `nested-microvm-host`, and `just test-nested` builds it on a Linux machine with KVM. `just ci` runs `just test-nested`, so the pre-push hook runs it before each push, and GitHub CI skips it.
+
+CI still evaluates and builds the module, and a repo that uses it builds its host in its own CI. What only the nested test proves is the behaviour: the flows, the egress, the published ports, and the secrets. A Renovate update merges with CI alone, so a release of tabnix needs a run of `just ci` on a Linux machine with KVM first.
 
 A repo takes the versions of microvm.nix and deploy-rs that tabnix pins.
 
@@ -115,4 +117,6 @@ The installer of the host and the layout of its disks stay in the repo, because 
 - A repo deploys a machine through `flakeModules.deploy`, with magic rollback on. `(CI: ci)`
 - The first deploy after an install deploys the installed config again, so that a rollback has a generation of deploy-rs to return to.
 - A release upgrade of NixOS is `deploy --boot` and a reboot, never a live switch.
-- The nixosTests `server` and `microvm-host` and the check `module-deploy` run in CI. `(CI: ci)`
+- The nixosTest `server` and the check `module-deploy` run in CI. `(CI: ci)`
+- The nested test `microvm-host` is not a CI check. `just ci` runs it on Linux with KVM, so the pre-push hook runs it.
+- A tag of tabnix follows a pass of `just ci` on a Linux machine with KVM.

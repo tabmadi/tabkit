@@ -30,5 +30,6 @@ Every text follows the Simple English profile in [ADR-0001](docs/adr/0001-docume
 - A tool that every repo needs goes into `modules/default.nix`. A language tool stays in the repo that uses it.
 - Code that only some repos share goes into `modules/<name>.nix` as `flakeModules.<name>`, with its check in `tests/<name>.nix` and its fixture in `tests/fixtures/`.
 - A NixOS module goes into `nixos/<name>.nix`, with its nixosTest in `tests/<name>.nix`. Never import either from `modules/default.nix`.
-- Before you finish a change, run `just check`. `just ci` runs the full sandboxed gate that CI runs.
+- Before you finish a change, run `just check`. `just ci` runs the full sandboxed gate that CI runs, and the nested microVM test that CI cannot run.
+- Tag a release only after `just ci` passes on a Linux machine with KVM, per ADR-0500.
 - Commit messages are a Conventional Commits title only, with no body. Never push unless asked to.

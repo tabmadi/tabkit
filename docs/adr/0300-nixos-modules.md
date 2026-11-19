@@ -23,7 +23,7 @@ A module that guards a trust boundary must prove that it refuses what it must re
 
 **Every module has a nixosTest.** The test is `tests/<name>.nix`, and it is a check of the own flake of tabnix on Linux. It boots VMs, and it asserts each refusal of the module, not only the path that succeeds.
 
-**CI runs every test.** The workflow gives the runner KVM, and `just ci` runs the tests with the other checks. Nix caches a test whose inputs did not change, so a local run repeats only a changed test.
+**CI runs every test, except the nested test of [ADR-0500](0500-self-hosted-machines.md).** The workflow gives the runner KVM, and `just ci` runs the tests with the other checks. Nix caches a test whose inputs did not change, so a local run repeats only a changed test.
 
 **A secret never enters the Nix store.** A module takes a key as a path string at run time, and it asserts that the path is outside the store. A certificate is public, so it can be a path in the store.
 
@@ -48,14 +48,12 @@ A machine gets a fix of a module only when its repo moves to a new tag.
 
 CI takes longer, because each test boots VMs. GitHub does not bill a public repo for these minutes.
 
-On macOS, `just ci` skips the nixosTests, because they need Linux and KVM. CI on Linux still runs them.
-
 ## Rules
 
 - A NixOS module is `nixosModules.<name>` from `nixos/<name>.nix`, and the flake-parts module never imports it.
 - Every option of a NixOS module is under `tabnix.` and has a description.
 - Every NixOS module has a nixosTest in `tests/<name>.nix` that asserts each refusal of the module. `(CI: ci)`
-- The CI runner has KVM, so `just ci` runs every nixosTest on Linux. `(CI: ci)`
+- The CI runner has KVM, so `just ci` runs every nixosTest, except the nested test of ADR-0500. `(CI: ci)`
 - A module takes a secret as a path at run time, outside the Nix store, and asserts it.
 - An upstream behind `mtls-gate` listens only on the loopback address.
 - A new NixOS module bumps the minor version.

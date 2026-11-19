@@ -23,16 +23,6 @@ jobs:
           echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm.rules
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
-      # The microvm-host test boots guests inside a test VM, so KVM must allow a nested guest.
-      - name: Enable nested KVM for the guests of the microVM test
-        run: |
-          for m in kvm_intel kvm_amd; do
-            [ -e /sys/module/$m ] || continue
-            if ! grep -qE '^(1|Y)$' /sys/module/$m/parameters/nested; then
-              sudo modprobe -r $m && sudo modprobe $m nested=1
-            fi
-            echo "$m nested: $(cat /sys/module/$m/parameters/nested)"
-          done
       - uses: cachix/install-nix-action@v31
         with:
           extra_nix_config: system-features = nixos-test benchmark big-parallel kvm

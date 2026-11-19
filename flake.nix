@@ -89,7 +89,12 @@
                 inherit pkgs;
                 module = ./nixos/server.nix;
               };
-              microvm-host = import ./tests/microvm-host.nix {
+            };
+
+            # The nested test of ADR-0500 boots guests inside a test VM. It is not a CI check: a GitHub runner is a
+            # VM itself, and a guest at that depth does not boot. `just ci` builds it on a Linux machine with KVM.
+            packages = lib.optionalAttrs pkgs.stdenv.hostPlatform.isLinux {
+              nested-microvm-host = import ./tests/microvm-host.nix {
                 inherit pkgs;
                 module = microvmHost;
               };
