@@ -40,12 +40,16 @@ Sources:
 
 **An opt-in module may need the default module.** Its options extend `tabnix.packages` and `tabnix.hooks`, so a repo imports both.
 
-**The template module is `flakeModules.template`.** A template imports it from `template/scope.nix`, so a project made from the template never loads it. It adds the `lint-scope` check and the `templates.default` output, which holds every file except the `template/` folder.
+**The template module is `flakeModules.template`.** A template imports it from `template/scope.nix`, so a project made from the template never loads it. It adds the `lint-scope` check and the `templates.default` output, which holds every file except the `template/` folder and the folders of `exclude`.
 
 | Option, at the top level | Sets |
 | --- | --- |
 | `tabnix.template.description` | The one-line description that `nix flake show` prints |
 | `tabnix.template.welcomeText` | The first steps that `nix flake new -t` prints |
+| `tabnix.template.exclude` | The top-level folders that the default template leaves out, beside `template/` |
+| `tabnix.template.variants.<name>` | One more template output, with its own welcome text and its own `exclude` list |
+
+A variant serves a template with a mode that adds folders, such as a host for a self-hosted mode. The default leaves the folders out, and the variant keeps them.
 
 **The bun module is `flakeModules.bun`.** It puts Bun and bun2nix in the dev shell, and adds the `bun-nix` hook, which fails when `bun.nix` does not match `bun.lock`. tabnix pins bun2nix, so a repo on Bun has no bun2nix input of its own.
 

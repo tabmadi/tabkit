@@ -10,11 +10,29 @@ let
   inherit (lib) mkOption types;
   cfg = config.tabnix.template;
 
-  # Every file except the template/ folder. `nix flake new -t` copies the result into a new project.
-  projectScope = builtins.path {
-    name = "project";
-    path = self;
-    filter = path: _type: !(lib.hasPrefix "${toString self}/template" path);
+  # Every file except the template/ folder and the given folders. `nix flake new -t` copies the result.
+  projectScope =
+    exclude:
+    builtins.path {
+      name = "project";
+      path = self;
+      filter =
+        path: _type:
+        !(lib.any (folder: lib.hasPrefix "${toString self}/${folder}" path) ([ "template" ] ++ exclude));
+    };
+
+  variantOptions = {
+    options = {
+      welcomeText = mkOption {
+        type = types.lines;
+        description = "The first steps in a new project of this variant, which `nix flake new -t` prints.";
+      };
+      exclude = mkOption {
+        type = types.listOf types.str;
+        default = [ ];
+        description = "The top-level folders that this variant leaves out, beside `template/`.";
+      };
+    };
   };
 in
 {
@@ -26,6 +44,17 @@ in
     welcomeText = mkOption {
       type = types.lines;
       description = "The first steps in a new project, which `nix flake new -t` prints.";
+    };
+    exclude = mkOption {
+      type = types.listOf types.str;
+      default = [ ];
+      example = [ "infra" ];
+      description = "The top-level folders that the default template leaves out, beside `template/`, such as the folder of a variant.";
+    };
+    variants = mkOption {
+      type = types.attrsOf (types.submodule variantOptions);
+      default = { };
+      description = "More templates beside the default, by name, such as one that keeps a folder that the default leaves out.";
     };
   };
 
@@ -49,9 +78,16 @@ in
         '';
       };
 
-    flake.templates.default = {
-      path = projectScope;
-      inherit (cfg) description welcomeText;
-    };
+    flake.templates = {
+      default = {
+        path = projectScope cfg.exclude;
+        inherit (cfg) description welcomeText;
+      };
+    }
+    // lib.mapAttrs (_: variant: {
+      path = projectScope variant.exclude;
+      inherit (cfg) description;
+      inherit (variant) welcomeText;
+    }) cfg.variants;
   };
 }

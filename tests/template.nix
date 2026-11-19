@@ -27,6 +27,8 @@ let
         tabnix.template = {
           description = "A fixture";
           welcomeText = "The first steps";
+          exclude = [ "infra" ];
+          variants.self-hosted.welcomeText = "The first steps of a host";
         };
       };
 
@@ -43,6 +45,10 @@ pkgs.runCommand "module-template"
     test -f ${good.templates.default.path}/AGENTS.md
     test ! -e ${good.templates.default.path}/template
     test "${good.templates.default.description}" = "A fixture"
+    test ! -e ${good.templates.default.path}/infra
+    test -f ${good.templates.self-hosted.path}/infra/README.md
+    test ! -e ${good.templates.self-hosted.path}/template
+    test "${good.templates.self-hosted.welcomeText}" = "The first steps of a host"
     grep -q "speaks as the template" $refused/testBuildFailure.log
     touch $out
   ''
