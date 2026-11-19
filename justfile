@@ -54,7 +54,7 @@ check: lint test
 # Run exactly what CI runs: every check of flake.nix, in the Nix sandbox. On Linux it boots the nixosTests
 ci:
     nix flake check --print-build-logs
-    just test-nested
+    {{ just_executable() }} test-nested
 
 # The nested microVM test of ADR-0500, which GitHub CI cannot run. It needs Linux with KVM
 test-nested:
