@@ -139,7 +139,7 @@ Other editors use the same dev shell with no committed config. `just format` fix
 
 ## Consequences
 
-- Every engineer installs Nix and enables flakes, which upstream marks as experimental. Nix runs on Linux and macOS, and on Windows only inside WSL.
+- Every engineer runs Linux, on x86-64 or ARM, and installs Nix with flakes, which upstream marks as experimental. Linux is the one supported platform, as Zed is the one supported editor. A person on macOS or WSL owns any gap.
 - Zed needs direnv, and nix-direnv for a fast reload. Each engineer allows `.envrc` once.
 - A push runs the full gate locally first, so a slow gate makes every push slow. `git push --no-verify` skips it, and CI still runs it.
 - CI downloads every tool on each run unless the workflow has a binary cache.
@@ -147,6 +147,7 @@ Other editors use the same dev shell with no committed config. `just format` fix
 
 ## Rules
 
+- Linux, on x86-64 and ARM, is the one supported platform. No file works around another one.
 - Every tool comes from the dev shell of `flake.nix`, never from a second version manager.
 - `flake.lock` is committed. Renovate updates it, and the CI gate decides.
 - Every task is a `just` recipe with a doc comment. A recipe that calls a tool runs only inside the dev shell.
