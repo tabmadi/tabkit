@@ -11,7 +11,7 @@
     };
     # tabnix uses tablint, so its tablint input follows this flake and never pins an older release.
     tabnix = {
-      url = "github:tabmadi/tabnix/v0.8.0";
+      url = "github:tabmadi/tabnix/v0.9.0";
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.flake-parts.follows = "flake-parts";
       inputs.tablint.follows = "";
