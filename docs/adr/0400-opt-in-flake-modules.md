@@ -55,6 +55,7 @@ A variant serves a template with a mode that adds folders, such as a host for a 
 
 | Option, under `perSystem` | Sets |
 | --- | --- |
+| `tabnix.bun.package` | The Bun of the dev shell and the checks: the newest release, built with the recipe of nixpkgs, so a repo never waits for nixpkgs |
 | `tabnix.bun.tools` | The tools in every Bun derivation, such as the Node.js that runs the app |
 | `tabnix.bun.installFlags` | The flags of the install, such as `--linker=hoisted` |
 | `tabnix.bun.env` | The environment variables of every Bun derivation |

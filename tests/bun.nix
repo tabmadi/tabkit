@@ -29,7 +29,7 @@ let
         perSystem =
           { config, pkgs, ... }:
           {
-            checks.test = config.tabnix.bun.check "test" [ pkgs.bun ] "bun test";
+            checks.test = config.tabnix.bun.check "test" [ config.tabnix.bun.package ] "bun test";
           };
       };
 in

@@ -63,6 +63,28 @@ in
     in
     {
       options.tabnix.bun = {
+        package = mkOption {
+          type = types.package;
+          # The recipe of nixpkgs at the newest release of Bun, with the hashes of its SHASUMS256.txt. A new release of
+          # Bun is a change here, and nixpkgs may lag it by days.
+          default = pkgs.bun.overrideAttrs (old: {
+            version = "1.4.5";
+            passthru = old.passthru // {
+              sources = {
+                x86_64-linux = pkgs.fetchurl {
+                  url = "https://github.com/oven-sh/bun/releases/download/bun-v1.4.5/bun-linux-x64-baseline.zip";
+                  hash = "sha256-3LI6GKHC//EtV7zvaW27tC62f94p9DgW7LWVRZokxGM=";
+                };
+                aarch64-linux = pkgs.fetchurl {
+                  url = "https://github.com/oven-sh/bun/releases/download/bun-v1.4.5/bun-linux-aarch64.zip";
+                  hash = "sha256-GGVqO/DqVkH1eWrkITt1JVV5pwoP3tLzN5M3hVaM34Q=";
+                };
+              };
+            };
+          });
+          defaultText = lib.literalMD "Bun 1.4.5 from its release";
+          description = "The Bun of the dev shell and of every Bun check. A repo takes Bun from here, never from pkgs.bun.";
+        };
         tools = mkOption {
           type = types.listOf types.package;
           default = [ ];
@@ -94,7 +116,7 @@ in
 
       config = {
         tabnix.packages = [
-          pkgs.bun
+          cfg.package
           bun2nix
         ];
 
