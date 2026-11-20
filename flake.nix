@@ -15,7 +15,6 @@
     tablint = {
       url = "github:tabmadi/tablint/v0.3.0";
       inputs.nixpkgs.follows = "nixpkgs";
-      inputs.git-hooks.follows = "git-hooks";
     };
     # The bun module of ADR-0400. bun.nix lists every package of bun.lock, so a check installs them without network.
     bun2nix = {
