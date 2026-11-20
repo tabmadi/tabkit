@@ -29,7 +29,11 @@ let
         perSystem =
           { config, pkgs, ... }:
           {
-            checks.test = config.tabnix.bun.check "test" [ config.tabnix.bun.package ] "bun test";
+            # The check runs the Bun of tabnix.bun.package, and not the one that the hook of bun2nix brings.
+            checks.test = config.tabnix.bun.check "test" [ ] ''
+              test "$(bun --version)" = "${config.tabnix.bun.package.version}"
+              bun test
+            '';
           };
       };
 in

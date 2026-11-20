@@ -32,10 +32,17 @@ in
           lib.functionArgs original
         );
 
+      # The hook of bun2nix brings the Bun of its own nixpkgs. A check runs the Bun of the dev shell, so it takes that one.
+      hook = bun2nix.hook.overrideAttrs (old: {
+        propagatedBuildInputs = map (
+          input: if (input.pname or "") == "bun" then cfg.package else input
+        ) old.propagatedBuildInputs;
+      });
+
       # The attributes of a derivation that installs bun.lock from bun.nix and runs no phase of its own.
       install = {
         src = self;
-        nativeBuildInputs = [ bun2nix.hook ] ++ cfg.tools;
+        nativeBuildInputs = [ hook ] ++ cfg.tools;
         bunDeps = bun2nix.fetchBunDeps { bunNix = linuxOnly "${self}/bun.nix"; };
         dontUseBunBuild = true;
         dontUseBunCheck = true;
