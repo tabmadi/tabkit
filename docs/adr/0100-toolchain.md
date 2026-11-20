@@ -139,6 +139,7 @@ Other editors use the same dev shell with no committed config. `just format` fix
 
 ## Consequences
 
+- CI reads a binary cache when the repository variables `NIX_CACHE_URL` and `NIX_CACHE_PUBLIC_KEY` exist. `just cache-push` uploads what a push to `master` built, with the push script of tabnix. The push never fails the gate.
 - Every engineer runs Linux, on x86-64 or ARM, and installs Nix with flakes, which upstream marks as experimental. Linux is the one supported platform, as Zed is the one supported editor. A person on macOS or WSL owns any gap.
 - Zed needs direnv, and nix-direnv for a fast reload. Each engineer allows `.envrc` once.
 - A push runs the full gate locally first, so a slow gate makes every push slow. `git push --no-verify` skips it, and CI still runs it.
