@@ -56,6 +56,10 @@ ci:
     nix flake check --print-build-logs
     {{ just_executable() }} test-nested
 
+# Push what CI built to the binary cache, per ADR-0600. Without NIX_CACHE_URL it does nothing
+cache-push: in-shell
+    nix-cache-push
+
 # The nested microVM test of ADR-0500, which GitHub CI cannot run. It needs Linux with KVM
 test-nested:
     if [ -n "${CI:-}" ]; then echo "GitHub CI skips the nested microVM test, per ADR-0500."; elif [ -w /dev/kvm ]; then nix build .#nested-microvm-host --no-link --print-build-logs; else echo "The nested microVM test needs KVM. It did not run." >&2; exit 1; fi

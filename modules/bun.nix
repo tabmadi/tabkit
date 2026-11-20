@@ -17,11 +17,26 @@ in
       cfg = config.tabnix.bun;
       bun2nix = localInputs.bun2nix.packages.${system}.default;
 
+      # bun.nix lists the native packages of every platform, and a fetch downloads each one. Linux is the one
+      # supported platform, per ADR-0100, and Bun skips an optional package of another platform on install.
+      foreignPlatform =
+        name:
+        builtins.match ".*(^|[-/@])(darwin|win32|freebsd|openbsd|netbsd|sunos|android|aix)([-@].*|$)" name
+        != null;
+      linuxOnly =
+        bunNix:
+        let
+          original = import bunNix;
+        in
+        lib.setFunctionArgs (args: lib.filterAttrs (name: _: !foreignPlatform name) (original args)) (
+          lib.functionArgs original
+        );
+
       # The attributes of a derivation that installs bun.lock from bun.nix and runs no phase of its own.
       install = {
         src = self;
         nativeBuildInputs = [ bun2nix.hook ] ++ cfg.tools;
-        bunDeps = bun2nix.fetchBunDeps { bunNix = "${self}/bun.nix"; };
+        bunDeps = bun2nix.fetchBunDeps { bunNix = linuxOnly "${self}/bun.nix"; };
         dontUseBunBuild = true;
         dontUseBunCheck = true;
         dontUseBunInstall = true;

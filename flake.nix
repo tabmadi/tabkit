@@ -27,6 +27,11 @@
       url = "github:serokell/deploy-rs";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    # The nix-cache module of ADR-0600 imports the NixOS module of niks3.
+    niks3 = {
+      url = "github:Mic92/niks3";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     # The microvm-host module of ADR-0500 runs each guest with microvm.nix.
     microvm = {
       url = "github:microvm-nix/microvm.nix";
@@ -44,6 +49,7 @@
         template = ./modules/template.nix;
         deploy = flake-parts-lib.importApply ./modules/deploy.nix inputs;
         microvmHost = flake-parts-lib.importApply ./nixos/microvm-host.nix inputs;
+        nixCache = flake-parts-lib.importApply ./nixos/nix-cache.nix inputs;
       in
       {
         imports = [ module ];
@@ -58,6 +64,7 @@
           mtls-gate = ./nixos/mtls-gate.nix;
           server = ./nixos/server.nix;
           microvm-host = microvmHost;
+          nix-cache = nixCache;
         };
 
         # The checks of the modules live here, not in the module that every repo imports. The nixosTests boot VMs.
@@ -84,6 +91,10 @@
               mtls-gate = import ./tests/mtls-gate.nix {
                 inherit pkgs;
                 module = ./nixos/mtls-gate.nix;
+              };
+              nix-cache = import ./tests/nix-cache.nix {
+                inherit pkgs;
+                module = nixCache;
               };
               server = import ./tests/server.nix {
                 inherit pkgs;

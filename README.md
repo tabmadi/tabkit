@@ -14,7 +14,8 @@ tabnix serves its owner. It is free to use under the Apache License 2.0, but it 
 | `formatter` | nixfmt |
 | `systems` | Linux, on x86-64 and ARM. Linux is the one supported platform |
 | Opt-in flake modules | `template`, for a template repo, `bun`, for a repo on Bun, and `deploy`, for a repo that deploys its own machines. Each one has a check |
-| NixOS modules | `server`, `microvm-host`, and `mtls-gate`, for the machines that a repo runs. Each one has a nixosTest |
+| NixOS modules | `server`, `microvm-host`, `mtls-gate`, and `nix-cache`, for the machines that a repo runs. Each one has a nixosTest |
+| Binary cache | `nix-cache-push` in the dev shell, which `just cache-push` runs after the CI gate. The variables `NIX_CACHE_URL` and `NIX_CACHE_PUBLIC_KEY` of a repo turn it on |
 
 ## Getting started
 
@@ -171,6 +172,35 @@ nixosConfigurations.host = nixpkgs.lib.nixosSystem {
 ```
 
 The key is a path at run time, such as a file that sops-nix writes. The module refuses a key path in the Nix store.
+
+## The binary cache
+
+`nix-cache` serves the paths that CI builds, from a bucket on SeaweedFS, and mirrors the public cache for one network. [ADR-0600](docs/adr/0600-binary-cache.md) lists its options:
+
+```nix
+modules = [
+  tabnix.nixosModules.nix-cache
+  {
+    tabnix.nixCache = {
+      enable = true;
+      domain = "cache.example.com";
+      githubOwners = [ "example" ];
+      signingKeyFile = "/run/secrets/nix-cache.key";
+      s3.accessKeyFile = "/run/secrets/s3-access";
+      s3.secretKeyFile = "/run/secrets/s3-secret";
+      mirror.domain = "mirror.example.com";
+      mirror.signingKeyFile = "/run/secrets/nix-mirror.key";
+    };
+  }
+];
+```
+
+The host needs DNS names for `domain`, `s3.<domain>`, and the mirror. A repo turns the cache on with the repository variables `NIX_CACHE_URL`, such as `https://cache.example.com`, and `NIX_CACHE_PUBLIC_KEY`. A workstation adds the same two values to `nix.conf`:
+
+```text
+extra-substituters = https://cache.example.com
+extra-trusted-public-keys = cache.example.com-1:<public key>
+```
 
 ## Decisions
 

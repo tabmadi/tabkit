@@ -177,6 +177,7 @@ in
             cfg.tablint
             pkgs.nixd
             pkgs.nixfmt
+            (import ./nix-cache-push.nix { inherit pkgs; })
           ]
           ++ cfg.packages;
           env = configEnv // cfg.env;
