@@ -22,7 +22,7 @@ tabrules has one maintainer. It is free to use under the Apache License 2.0, and
 | `version` | `flake.nix` and `go.mod` or `pyproject.toml` name the same version line |
 | `just` | Every public recipe has a doc comment |
 
-`comment/workaround` checks that a workaround names its pin or a recent check date. Each rule acts only when its input exists. `tabrules rules` lists every rule ID, and `tabrules gen --list` lists every generator. Comments are read in Go, TypeScript, JavaScript, Rust, Python, GDScript, shell, TOML, YAML, and SQL.
+`comment/workaround` checks that a workaround names its pin or a recent check date. Each rule acts only when its input exists. `tabrules rules` lists every rule ID, and `tabrules gen --list` lists every generator. `tabrules affected` prints the services, apps, and libraries that a diff touches, as JSON. Comments are read in Go, TypeScript, JavaScript, Rust, Python, GDScript, shell, TOML, YAML, and SQL.
 
 ## Getting started
 

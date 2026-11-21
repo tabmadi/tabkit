@@ -1,5 +1,6 @@
 //! tabrules: opinionated checks and generators that read a repository's files.
 
+mod affected;
 mod comments;
 mod config;
 mod constructs;
@@ -37,6 +38,24 @@ enum Command {
     },
     /// Print every rule ID and what it enforces.
     Rules,
+    /// Print the JSON manifest of what the diff against a base ref touches.
+    Affected {
+        /// The git ref to diff against, through the merge base.
+        #[arg(long, default_value = "origin/master")]
+        base: String,
+        /// Report a global change, whatever the diff holds.
+        #[arg(long)]
+        all: bool,
+        /// Ignore the paths that only build and check the repository.
+        #[arg(long)]
+        runtime: bool,
+        /// The repository root.
+        #[arg(long, default_value = ".")]
+        root: PathBuf,
+        /// A config file other than `<root>/.config/tabrules.toml`.
+        #[arg(long)]
+        config: Option<PathBuf>,
+    },
     /// Write the generated files, or compare them with `--check`.
     Gen {
         /// The generators to run. Without a name, every enabled generator runs.
@@ -64,6 +83,19 @@ fn main() -> ExitCode {
             }
             ExitCode::SUCCESS
         }
+        Command::Affected {
+            base,
+            all,
+            runtime,
+            root,
+            config,
+        } => exit(print_affected(
+            &root,
+            config.as_deref(),
+            &base,
+            all,
+            runtime,
+        )),
         Command::Gen { list: true, .. } => {
             for g in r#gen::GENERATORS {
                 println!("{:<28} {}", g.id, g.what);
@@ -90,6 +122,19 @@ fn exit(result: anyhow::Result<bool>) -> ExitCode {
             ExitCode::from(2)
         }
     }
+}
+
+fn print_affected(
+    root: &Path,
+    config: Option<&Path>,
+    base: &str,
+    all: bool,
+    runtime: bool,
+) -> anyhow::Result<bool> {
+    let cfg = config::Config::load(root, config)?;
+    rules::validate(&cfg)?;
+    print!("{}", affected::run(root, &cfg, base, all, runtime)?);
+    Ok(true)
 }
 
 /// Runs the generators, and returns false when `--check` finds a file that differs.

@@ -1,6 +1,9 @@
 //! The generators. Each one reads the repository and returns whole files, so `--check` compares bytes.
 
+mod admin;
+mod build_path;
 mod data_classes;
+mod emit;
 mod rules_index;
 mod shared_components;
 mod zod;
@@ -21,6 +24,17 @@ pub struct Generator {
     pub id: &'static str,
     pub what: &'static str,
     pub run: fn(&Repo, &Config) -> Result<Vec<Output>>,
+    /// The directory whose files this generator owns. A file there that it no longer writes is stale.
+    pub owned: fn(&Config) -> Result<Option<String>>,
+}
+
+/// For a generator that owns no directory.
+#[expect(
+    clippy::unnecessary_wraps,
+    reason = "every generator has this signature"
+)]
+fn owns_nothing(_: &Config) -> Result<Option<String>> {
+    Ok(None)
 }
 
 /// Every generator. `tabrules gen --list` prints this table.
@@ -29,21 +43,37 @@ pub const GENERATORS: &[Generator] = &[
         id: "gen/rules-index",
         what: "The index of every ADR rule, and the security baseline",
         run: rules_index::run,
+        owned: owns_nothing,
     },
     Generator {
         id: "gen/data-classes",
         what: "The registry of classified columns and their retention",
         run: data_classes::run,
+        owned: owns_nothing,
     },
     Generator {
         id: "gen/shared-components",
         what: "The shared OpenAPI components that each spec reaches",
         run: shared_components::run,
+        owned: owns_nothing,
     },
     Generator {
         id: "gen/zod",
         what: "A zod schema for each JSON request body",
         run: zod::run,
+        owned: owns_nothing,
+    },
+    Generator {
+        id: "gen/build-path",
+        what: "The table of the recipes that CI, checks, and hooks reach",
+        run: build_path::run,
+        owned: owns_nothing,
+    },
+    Generator {
+        id: "gen/admin",
+        what: "Lowdefy admin pages from the OpenAPI specs",
+        run: admin::run,
+        owned: admin::owned,
     },
 ];
 
@@ -77,7 +107,22 @@ pub fn run(
 ) -> Result<Vec<(String, &'static str)>> {
     let mut changed = Vec::new();
     for generator in selected {
-        for output in (generator.run)(repo, cfg).with_context(|| generator.id)? {
+        let outputs = (generator.run)(repo, cfg).with_context(|| generator.id)?;
+        if let Some(dir) = (generator.owned)(cfg)? {
+            let prefix = format!("{dir}/");
+            for stale in stale_files(&repo.root.join(&dir), &prefix)? {
+                if outputs.iter().any(|o| o.path == stale) {
+                    continue;
+                }
+                if !check {
+                    let path = repo.root.join(&stale);
+                    std::fs::remove_file(&path)
+                        .with_context(|| format!("remove {}", path.display()))?;
+                }
+                changed.push((stale, generator.id));
+            }
+        }
+        for output in outputs {
             let path = repo.root.join(&output.path);
             if std::fs::read(&path).is_ok_and(|bytes| bytes == output.bytes) {
                 continue;
@@ -97,6 +142,24 @@ pub fn run(
     Ok(changed)
 }
 
+/// Every file under a directory, as a path that starts with `prefix`. A missing directory holds none.
+fn stale_files(dir: &std::path::Path, prefix: &str) -> Result<Vec<String>> {
+    let mut out = Vec::new();
+    let Ok(entries) = std::fs::read_dir(dir) else {
+        return Ok(out);
+    };
+    for entry in entries {
+        let entry = entry.with_context(|| format!("read {}", dir.display()))?;
+        let name = format!("{prefix}{}", entry.file_name().to_string_lossy());
+        if entry.file_type()?.is_dir() {
+            out.extend(stale_files(&entry.path(), &format!("{name}/"))?);
+        } else {
+            out.push(name);
+        }
+    }
+    Ok(out)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -113,6 +176,7 @@ mod tests {
         id: "gen/sample",
         what: "A sample",
         run: sample,
+        owned: owns_nothing,
     }];
 
     #[test]

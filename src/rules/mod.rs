@@ -303,8 +303,9 @@ pub fn validate(cfg: &Config) -> Result<()> {
             .chain(GENERATORS.iter().map(|g| g.id))
     };
     for key in cfg.rules.keys() {
-        let known =
-            key == "gen" || ids().any(|id| id == key || id.split('/').next() == Some(key.as_str()));
+        let known = key == "gen"
+            || key == crate::affected::ID
+            || ids().any(|id| id == key || id.split('/').next() == Some(key.as_str()));
         if !known {
             bail!("`[rules.{key}]` names no rule or group. `tabrules rules` lists them");
         }
