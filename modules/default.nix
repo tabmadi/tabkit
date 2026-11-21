@@ -246,6 +246,16 @@ in
           lint-data = check "lint-data" [ dprint ] "DPRINT_CACHE_DIR=$TMPDIR/dprint dprint check";
           lint-nix = check "lint-nix" [ pkgs.nixfmt ] "find . -name '*.nix' -exec nixfmt --check {} +";
           lint-just = check "lint-just" [ pkgs.just ] "just --fmt --check";
+          # Event text in a `run` script is an injection. A repo lists its extra runner labels in the config.
+          lint-workflows = check "lint-workflows" [ pkgs.actionlint ] ''
+            if [ -d .github/workflows ]; then
+              config=()
+              if [ -f .config/actionlint.yaml ]; then
+                config=(-config-file .config/actionlint.yaml)
+              fi
+              actionlint -shellcheck= -pyflakes= "''${config[@]}" .github/workflows/*.yml
+            fi
+          '';
         }
         // lib.optionalAttrs cfg.tabrules.enable {
           # tabrules reads the recipes through `just`.

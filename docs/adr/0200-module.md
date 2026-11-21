@@ -36,6 +36,8 @@ A repo adds its own checks and packages as plain flake-parts outputs, such as `c
 
 **`commit-range` is in the dev shell.** It runs cog over the commits of a branch, against `BASE_REF`, because a rebase can bring a bad message past the commit-msg hook.
 
+**`lint-workflows` runs actionlint.** It finds event text in a `run` script, and a repo lists its extra runner labels in `.config/actionlint.yaml`.
+
 **tabnix checks itself.** Its own flake imports the module, so a broken change fails its own gate first.
 
 ## Consequences

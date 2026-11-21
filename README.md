@@ -10,7 +10,7 @@ tabnix has one maintainer. It is free to use under the Apache License 2.0, and i
 | --- | --- |
 | Dev shell | `just`, cocogitto, rumdl, gitleaks, dprint, tabrules, `commit-range`, nixd, and nixfmt, plus the tools of the repo |
 | Git hooks | tabrules, rumdl, dprint, nixfmt, `just --fmt`, gitleaks, `cog verify`, `cog check`, and `just ci` |
-| Checks | `lint-prose`, `lint-md`, `lint-secrets`, `lint-data`, `lint-nix`, and `lint-just` |
+| Checks | `lint-prose`, `lint-md`, `lint-secrets`, `lint-data`, `lint-nix`, `lint-just`, and `lint-workflows` |
 | `formatter` | nixfmt |
 | `systems` | Linux, on x86-64 and ARM. Linux is the one supported platform |
 | Opt-in flake modules | `template` adds the `templates` output and the `lint-scope` check. `bun`, `go`, and `shell` serve a repo with that part. `deploy` serves a repo that deploys its own machines. Each one has a check |
