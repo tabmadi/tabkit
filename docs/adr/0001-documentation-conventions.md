@@ -131,7 +131,7 @@ These comments are never committed:
 
 ## Consequences
 
-tablint checks most rules of this ADR: the profile, the punctuation, the banned constructs, the comment rules, and the shape of each ADR. Review is the gate for the rest, such as one idea per sentence.
+tabrules checks most rules of this ADR: the profile, the punctuation, the banned constructs, the comment rules, and the shape of each ADR. Review is the gate for the rest, such as one idea per sentence.
 
 ## Rules
 

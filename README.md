@@ -8,12 +8,12 @@ tabnix has one maintainer. It is free to use under the Apache License 2.0, and i
 
 | Part | Holds |
 | --- | --- |
-| Dev shell | `just`, cocogitto, rumdl, gitleaks, dprint, tablint, nixd, and nixfmt, plus the tools of the repo |
-| Git hooks | tablint, rumdl, dprint, nixfmt, `just --fmt`, gitleaks, `cog verify`, `cog check`, and `just ci` |
+| Dev shell | `just`, cocogitto, rumdl, gitleaks, dprint, tabrules, `commit-range`, nixd, and nixfmt, plus the tools of the repo |
+| Git hooks | tabrules, rumdl, dprint, nixfmt, `just --fmt`, gitleaks, `cog verify`, `cog check`, and `just ci` |
 | Checks | `lint-prose`, `lint-md`, `lint-secrets`, `lint-data`, `lint-nix`, and `lint-just` |
 | `formatter` | nixfmt |
 | `systems` | Linux, on x86-64 and ARM. Linux is the one supported platform |
-| Opt-in flake modules | `template`, for the `templates` output and the `lint-scope` check, `bun`, for a repo on Bun, and `deploy`, for a repo that deploys its own machines. Each one has a check |
+| Opt-in flake modules | `template` adds the `templates` output and the `lint-scope` check. `bun`, `go`, and `shell` serve a repo with that part. `deploy` serves a repo that deploys its own machines. Each one has a check |
 | NixOS modules | `server`, `microvm-host`, `mtls-gate`, and `nix-cache`, for the machines that a repo runs. Each one has a nixosTest |
 | Binary cache | `nix-cache-push` in the dev shell, which `just cache-push` runs after the CI gate. The variables `NIX_CACHE_URL` and `NIX_CACHE_PUBLIC_KEY` of a repo turn it on |
 
@@ -60,7 +60,8 @@ tabnix has one maintainer. It is free to use under the Apache License 2.0, and i
 | `tabnix.hooks` | Adds hooks in the git-hooks.nix format. Each one is enabled |
 | `tabnix.compiler` | Puts a C compiler in the dev shell, for a cargo or cgo build |
 | `tabnix.env` | Sets environment variables in the dev shell, beside the ones that tabnix sets |
-| `tabnix.tablint` | Sets the tablint binary. The tablint repo sets its own build |
+| `tabnix.tabrules.enable` | Turns tabrules on or off. The default is on |
+| `tabnix.tabrules.package` | Sets the tabrules binary |
 | `tabnix.check` | Read only. Makes a check from a name, a list of tools, and a command |
 
 ## Opt-in flake modules

@@ -63,6 +63,10 @@ A variant serves a template with a mode that adds folders, such as a host for a 
 | `tabnix.bun.install` | Read only. The attributes of a derivation that installs the locked `node_modules`, to extend with its own phases |
 | `tabnix.bun.check` | Read only. Makes a check from a name, a list of tools, and a command |
 
+**The go and shell modules have their own ADRs.** [ADR-0700](0700-go-module.md) holds the go module, and [ADR-0800](0800-shell-module.md) holds the shell module.
+
+**The bun module checks the version.** A repo with `packageManager` in `package.json` gets the check `bun-version`, which fails when that version differs from `tabnix.bun.package`.
+
 **Every opt-in module has a check.** The check `module-<name>` builds a small flake from a fixture in `tests/fixtures/` with the module, and asserts what it outputs. The check of the template module also asserts that `lint-scope` refuses a doc that speaks as the template.
 
 ## Consequences

@@ -12,8 +12,8 @@
       url = "github:cachix/git-hooks.nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    tablint = {
-      url = "github:tabmadi/tablint/v0.3.0";
+    tabrules = {
+      url = "github:tabmadi/tabrules/v0.4.0";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     # The bun module of ADR-0400. bun.nix lists every package of bun.lock, so a check installs them without network.
@@ -46,6 +46,8 @@
         module = flake-parts-lib.importApply ./modules/default.nix inputs;
         bun = flake-parts-lib.importApply ./modules/bun.nix inputs;
         template = ./modules/template.nix;
+        go = ./modules/go.nix;
+        shell = ./modules/shell.nix;
         deploy = flake-parts-lib.importApply ./modules/deploy.nix inputs;
         microvmHost = flake-parts-lib.importApply ./nixos/microvm-host.nix inputs;
         nixCache = flake-parts-lib.importApply ./nixos/nix-cache.nix inputs;
@@ -55,7 +57,13 @@
         flake.flakeModules = {
           default = module;
           # The opt-in modules of ADR-0400. A repo imports one only when it has the part.
-          inherit bun deploy template;
+          inherit
+            bun
+            deploy
+            go
+            shell
+            template
+            ;
         };
 
         # The NixOS modules of ADR-0300 and ADR-0500. A repo imports one only on a machine that it runs.
@@ -84,6 +92,22 @@
               };
             }
             // lib.optionalAttrs pkgs.stdenv.hostPlatform.isLinux {
+              module-go = import ./tests/go.nix {
+                inherit
+                  pkgs
+                  inputs
+                  module
+                  go
+                  ;
+              };
+              module-shell = import ./tests/shell.nix {
+                inherit
+                  pkgs
+                  inputs
+                  module
+                  shell
+                  ;
+              };
               module-deploy = import ./tests/deploy.nix {
                 inherit pkgs inputs deploy;
               };

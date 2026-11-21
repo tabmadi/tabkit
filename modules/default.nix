@@ -1,5 +1,5 @@
 # The shared toolchain, per ADR-0200: the base dev shell, the git hooks, and the checks of every repo.
-# The tabnix flake applies its own inputs, so a repo never adds git-hooks.nix or tablint itself.
+# The tabnix flake applies its own inputs, so a repo never adds git-hooks.nix or tabrules itself.
 localInputs:
 { self, lib, ... }:
 let
@@ -58,16 +58,35 @@ in
           touch $out
         '';
 
+      # A rebase or a cherry-pick can bring a bad message past the commit-msg hook, so CI checks the range of a branch.
+      commitRange = pkgs.writeShellScriptBin "commit-range" ''
+        set -euo pipefail
+        base=''${BASE_REF:-master}
+        base=''${base#refs/heads/}
+        ref=""
+        for candidate in "origin/$base" "$base"; do
+          if ${git} rev-parse --verify --quiet "$candidate^{commit}" > /dev/null; then
+            ref=$candidate
+            break
+          fi
+        done
+        if [ -z "$ref" ]; then
+          echo "⚠ no such base ref: $base. Skipping the commit-range check" >&2
+          exit 0
+        fi
+        range="$ref..HEAD"
+        if [ "$(${git} rev-list --count "$range")" -eq 0 ]; then
+          echo "✓ no commits ahead of $ref"
+          exit 0
+        fi
+        ${cog} check --ignore-merge-commits "$range"
+        echo "✓ commit messages conform to Conventional Commits"
+      '';
+
       hooks = localInputs.git-hooks.lib.${system}.run {
         src = self;
         package = pkgs.prek;
         hooks = {
-          prose = {
-            enable = true;
-            name = "tablint";
-            entry = "${lib.getExe cfg.tablint} check";
-            pass_filenames = false;
-          };
           markdown = {
             enable = true;
             name = "rumdl";
@@ -148,6 +167,14 @@ in
             always_run = true;
           };
         }
+        // lib.optionalAttrs cfg.tabrules.enable {
+          prose = {
+            enable = true;
+            name = "tabrules";
+            entry = "${lib.getExe cfg.tabrules.package} check";
+            pass_filenames = false;
+          };
+        }
         // lib.mapAttrs (_: hook: { enable = true; } // hook) cfg.hooks;
       };
     in
@@ -173,10 +200,18 @@ in
           default = { };
           description = "The environment variables of the repo. They join the variables of the base dev shell.";
         };
-        tablint = mkOption {
-          type = types.package;
-          default = localInputs.tablint.packages.${system}.default;
-          description = "The tablint binary. The tablint repo sets its own build here.";
+        tabrules = {
+          enable = mkOption {
+            type = types.bool;
+            default = true;
+            description = "Whether the dev shell, the hooks, and the checks hold tabrules.";
+          };
+          package = mkOption {
+            type = types.package;
+            default = localInputs.tabrules.packages.${system}.default;
+            defaultText = lib.literalMD "tabrules, at the tag that this flake pins";
+            description = "The tabrules binary. A repo can set another build.";
+          };
         };
         check = mkOption {
           type = types.raw;
@@ -194,23 +229,30 @@ in
             pkgs.rumdl
             pkgs.gitleaks
             dprint
-            cfg.tablint
             pkgs.nixd
             pkgs.nixfmt
             (import ./nix-cache-push.nix { inherit pkgs; })
+            commitRange
           ]
+          ++ lib.optional cfg.tabrules.enable cfg.tabrules.package
           ++ cfg.packages;
           env = configEnv // cfg.env;
           shellHook = hooks.shellHook;
         };
 
         checks = {
-          lint-prose = check "lint-prose" [ cfg.tablint ] "tablint check";
           lint-md = check "lint-md" [ pkgs.rumdl ] "rumdl check .";
           lint-secrets = check "lint-secrets" [ pkgs.gitleaks ] "gitleaks dir . --no-banner";
           lint-data = check "lint-data" [ dprint ] "DPRINT_CACHE_DIR=$TMPDIR/dprint dprint check";
           lint-nix = check "lint-nix" [ pkgs.nixfmt ] "find . -name '*.nix' -exec nixfmt --check {} +";
           lint-just = check "lint-just" [ pkgs.just ] "just --fmt --check";
+        }
+        // lib.optionalAttrs cfg.tabrules.enable {
+          # tabrules reads the recipes through `just`.
+          lint-prose = check "lint-prose" [
+            cfg.tabrules.package
+            pkgs.just
+          ] "tabrules check";
         };
 
         formatter = pkgs.nixfmt;

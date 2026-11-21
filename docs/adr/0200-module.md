@@ -24,14 +24,17 @@ Each repo needs the same base and its own language parts. The base must merge wi
 | `tabnix.hooks` | Adds hooks in the git-hooks.nix format |
 | `tabnix.compiler` | Puts a C compiler in the dev shell |
 | `tabnix.env` | Sets environment variables in the dev shell, such as the library path that a Python wheel with native code needs |
-| `tabnix.tablint` | Sets the tablint binary |
+| `tabnix.tabrules.enable` | Turns tabrules on or off in the dev shell, the hooks, and the checks |
+| `tabnix.tabrules.package` | Sets the tabrules binary |
 | `tabnix.check` | Read only. Makes a check that runs on a copy of the tracked files |
 
 A repo adds its own checks and packages as plain flake-parts outputs, such as `checks.lint-go`.
 
 **The tools read their configs from `.config/` in the repo.** The module passes the path where a tool does not find it: gitleaks gets an environment variable, cog and dprint get a flag.
 
-**tablint comes from a tagged input.** The tablint repo uses tabnix too, so it sets `tabnix.tablint` to the binary that its own commit builds.
+**tabrules is an independent tool, and a repo can turn it off.** It comes from a tagged input. The tabrules repo uses tabnix too, so it sets `tabnix.tabrules.package` to the binary that its own commit builds.
+
+**`commit-range` is in the dev shell.** It runs cog over the commits of a branch, against `BASE_REF`, because a rebase can bring a bad message past the commit-msg hook.
 
 **tabnix checks itself.** Its own flake imports the module, so a broken change fails its own gate first.
 
