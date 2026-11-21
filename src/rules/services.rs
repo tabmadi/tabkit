@@ -747,10 +747,10 @@ fn ports(ctx: &Ctx<'_>) -> Result<Vec<Finding>> {
     for (service, port) in &entries {
         by_port.entry(port).or_default().push(service);
     }
-    for (port, owners) in by_port.iter().filter(|(_, o)| o.len() > 1) {
+    for (port, services) in by_port.iter().filter(|(_, s)| s.len() > 1) {
         let message = format!(
             "port {port} is registered to more than one service: {}",
-            owners.join(" ")
+            services.join(" ")
         );
         out.push(Finding::new(&registry, 0, PORTS, message));
     }

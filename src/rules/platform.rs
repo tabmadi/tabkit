@@ -300,7 +300,7 @@ fn api(ctx: &Ctx<'_>) -> Result<Vec<Finding>> {
         "values",
         "infra/gitops/services/dev/values/{service}.yaml",
     )?;
-    let mut owners: BTreeMap<String, Vec<String>> = BTreeMap::new();
+    let mut claims: BTreeMap<String, Vec<String>> = BTreeMap::new();
     let mut first_spec = None;
     let mut out = Vec::new();
     for path in ctx.repo.files.iter().filter(|f| specs.matches(f)) {
@@ -341,7 +341,7 @@ fn api(ctx: &Ctx<'_>) -> Result<Vec<Finding>> {
                 })
                 .collect();
             for resource in &routed {
-                owners
+                claims
                     .entry(resource.clone())
                     .or_default()
                     .push(service.to_owned());
@@ -361,9 +361,9 @@ fn api(ctx: &Ctx<'_>) -> Result<Vec<Finding>> {
         }
     }
     if let Some(spec) = first_spec {
-        for (resource, claimants) in owners.iter().filter(|(_, c)| c.len() > 1) {
+        for (resource, claimants) in claims.iter().filter(|(_, c)| c.len() > 1) {
             let message = format!(
-                "resource `{resource}` is claimed by {}. One flat /api namespace allows one owner",
+                "resource `{resource}` is claimed by {}. One flat /api namespace allows one service for each resource",
                 claimants.join(", ")
             );
             out.push(Finding::new(spec, 0, PREFIXES, message));

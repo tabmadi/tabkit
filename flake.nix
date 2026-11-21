@@ -11,7 +11,7 @@
     };
     # tabnix uses tabrules, so its tabrules input follows this flake and never pins an older release.
     tabnix = {
-      url = "github:tabmadi/tabnix/v0.12.0";
+      url = "github:tabmadi/tabnix/v0.14.0";
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.flake-parts.follows = "flake-parts";
       inputs.tabrules.follows = "";

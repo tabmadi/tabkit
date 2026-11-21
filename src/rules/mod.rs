@@ -224,7 +224,7 @@ pub const RULES: &[(&str, &str)] = &[
     ),
     (
         "api/prefixes",
-        "Each resource prefix of the API has one owner, and spec and routes agree",
+        "Each resource prefix of the API belongs to one service, and spec and routes agree",
     ),
     (
         "edge/api-wildcard",

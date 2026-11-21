@@ -206,8 +206,8 @@ fn principle_blocks(
     let mut out = Vec::new();
     for (num, p) in principles {
         for name in &p.rejected {
-            if let Some(owner) = chosen.get(name) {
-                let message = format!("principle {num} rejects `{name}`, and ADR-{owner} chose it");
+            if let Some(adr) = chosen.get(name) {
+                let message = format!("principle {num} rejects `{name}`, and ADR-{adr} chose it");
                 out.push(Finding::new(path, 0, PRINCIPLES, message));
             }
         }
@@ -215,9 +215,9 @@ fn principle_blocks(
             if chosen.contains_key(name) {
                 continue;
             }
-            if let Some(owner) = lost.get(name) {
+            if let Some(adr) = lost.get(name) {
                 let message = format!(
-                    "principle {num} accepts `{name}` on the exit-cost rule, and ADR-{owner} rejected it"
+                    "principle {num} accepts `{name}` on the exit-cost rule, and ADR-{adr} rejected it"
                 );
                 out.push(Finding::new(path, 0, PRINCIPLES, message));
             }

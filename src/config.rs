@@ -14,6 +14,7 @@ pub const ON_DEMAND: &[&str] = &[
     "kube/resource-governance",
     "go/service-deps",
     "edge/strip-headers",
+    "helm/app-version",
     "project/identity",
 ];
 
