@@ -1,13 +1,15 @@
-//! tabrules: an opinionated linter for Simple English prose, code comments, and decision records.
+//! tabrules: opinionated checks and generators that read a repository's files.
 
 mod comments;
 mod config;
 mod constructs;
 mod finding;
+mod r#gen;
 mod markdown;
 mod repo;
 mod rules;
 mod simple;
+mod yaml;
 
 use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};
@@ -35,6 +37,23 @@ enum Command {
     },
     /// Print every rule ID and what it enforces.
     Rules,
+    /// Write the generated files, or compare them with `--check`.
+    Gen {
+        /// The generators to run. Without a name, every enabled generator runs.
+        names: Vec<String>,
+        /// Write nothing, and fail when a generated file differs.
+        #[arg(long)]
+        check: bool,
+        /// Print every generator and what it writes.
+        #[arg(long)]
+        list: bool,
+        /// The repository root.
+        #[arg(long, default_value = ".")]
+        root: PathBuf,
+        /// A config file other than `<root>/.config/tabrules.toml`.
+        #[arg(long)]
+        config: Option<PathBuf>,
+    },
 }
 
 fn main() -> ExitCode {
@@ -45,20 +64,67 @@ fn main() -> ExitCode {
             }
             ExitCode::SUCCESS
         }
-        Command::Check { root, config } => match check(&root, config.as_deref()) {
-            Ok(true) => ExitCode::SUCCESS,
-            Ok(false) => ExitCode::from(1),
-            Err(e) => {
-                eprintln!("✗ {e:#}");
-                ExitCode::from(2)
+        Command::Gen { list: true, .. } => {
+            for g in r#gen::GENERATORS {
+                println!("{:<28} {}", g.id, g.what);
             }
-        },
+            ExitCode::SUCCESS
+        }
+        Command::Gen {
+            names,
+            check,
+            root,
+            config,
+            ..
+        } => exit(generate(&root, config.as_deref(), &names, check)),
+        Command::Check { root, config } => exit(self::check(&root, config.as_deref())),
     }
+}
+
+fn exit(result: anyhow::Result<bool>) -> ExitCode {
+    match result {
+        Ok(true) => ExitCode::SUCCESS,
+        Ok(false) => ExitCode::from(1),
+        Err(e) => {
+            eprintln!("✗ {e:#}");
+            ExitCode::from(2)
+        }
+    }
+}
+
+/// Runs the generators, and returns false when `--check` finds a file that differs.
+fn generate(
+    root: &Path,
+    config: Option<&Path>,
+    names: &[String],
+    check: bool,
+) -> anyhow::Result<bool> {
+    let cfg = config::Config::load(root, config)?;
+    rules::validate(&cfg)?;
+    let repo = repo::Repo::open(root)?;
+    let selected = r#gen::select(r#gen::GENERATORS, names, &cfg)?;
+    let changed = r#gen::run(&repo, &cfg, &selected, check)?;
+    if check && !changed.is_empty() {
+        for (path, id) in &changed {
+            println!("{path}: {id}: the file differs from its generated form");
+        }
+        eprintln!(
+            "✗ {} generated files differ. Run `tabrules gen`",
+            changed.len()
+        );
+        return Ok(false);
+    }
+    for (path, id) in &changed {
+        println!("→ {path}: {id}");
+    }
+    println!("✓ {} generators ran", selected.len());
+    Ok(true)
 }
 
 /// Prints the findings, and returns whether the repository passed.
 fn check(root: &Path, config: Option<&Path>) -> anyhow::Result<bool> {
     let cfg = config::Config::load(root, config)?;
+    rules::validate(&cfg)?;
     let repo = repo::Repo::open(root)?;
     let found = rules::run(&repo, &cfg)?;
     if found.is_empty() {

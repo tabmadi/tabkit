@@ -35,7 +35,7 @@ Each source file in a known language becomes comment blocks. Strings, heredocs, 
 
 **A line opts out with `tabrules:allow`.** In Markdown it is an HTML comment, and in code it is a comment on the same line.
 
-**The output is one finding per line**, as `path:line: rule: message`. The exit code is 0 for no finding, 1 for a finding, and 2 for an error.
+**The output is one finding per line**, as `path:line: rule: message`, with the citation of the rule at the end when the config sets one. The exit code is 0 for no finding, 1 for a finding, and 2 for an error.
 
 **Each rule has a fixture.** `tests/fixtures/<name>/` is a small repository that breaks rules on purpose, and `<name>.expected` holds the exact output. `just bless` writes it again after a deliberate change.
 
@@ -46,6 +46,6 @@ A rule that only one repository needs is still code in tabrules. When it is too 
 ## Rules
 
 - Every rule has an ID of the form `<group>/<name>` and a row in `rules::RULES`.
-- A rule reads the repository model. It never runs another program.
+- A rule reads the repository model. It runs another program only as [ADR-0400](0400-scope.md) allows.
 - A rule never repeats a check of another linter of the toolchain.
 - Every rule has a case in a fixture, and the fixture output is exact. `(CI: test)`

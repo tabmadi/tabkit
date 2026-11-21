@@ -21,4 +21,22 @@ dir = "apps/frontend/src/messages"
 tests = ["**/*.test.ts", "e2e/**/*.spec.ts"]
 ```
 
+A `[rules]` table sets the citation and the paths of one rule or one group. A finding prints the citation at its end:
+
+```toml
+[rules."workflow/thin"]
+cite = "ADR-0101"
+exempt = ["**/check.yml"]
+
+[rules.image]
+cite = "ADR-0111"
+```
+
+| Rule | Path keys |
+| --- | --- |
+| `workflow/thin` | `paths`, `exempt` |
+| `image/floating-tag` | `paths`, `exempt` |
+| `image/unpinned-action` | `paths` |
+| `script/log-vocabulary` | `paths`, `exempt` |
+
 A line opts out of every rule with `tabrules:allow`, in an HTML comment in Markdown or in a comment in code.

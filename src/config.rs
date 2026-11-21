@@ -1,5 +1,6 @@
 //! `tabrules.toml`. Every key has a default, and the defaults are the opinion: an empty file runs every rule.
 
+use std::collections::BTreeMap;
 use std::path::Path;
 
 use anyhow::{Context, Result};
@@ -22,6 +23,18 @@ pub struct Config {
     pub messages: Messages,
     pub annotations: Annotations,
     pub requirements: Requirements,
+    /// Settings of one rule or one group, by its ID.
+    pub rules: BTreeMap<String, RuleConfig>,
+}
+
+/// The settings of a rule. Each rule reads its own path keys from `options`.
+#[derive(Debug, Default, Clone, Deserialize)]
+#[serde(default, rename_all = "kebab-case")]
+pub struct RuleConfig {
+    /// The project's citation, such as an ADR number. A finding prints it.
+    pub cite: Option<String>,
+    #[serde(flatten)]
+    pub options: toml::Table,
 }
 
 #[derive(Debug, Deserialize)]
@@ -246,6 +259,30 @@ impl Config {
         let text =
             std::fs::read_to_string(&path).with_context(|| format!("read {}", path.display()))?;
         toml::from_str(&text).with_context(|| format!("parse {}", path.display()))
+    }
+
+    /// The citation of a rule: its own, or the one of its group.
+    pub fn cite(&self, rule: &str) -> Option<&str> {
+        let group = rule.split('/').next().unwrap_or(rule);
+        [rule, group]
+            .iter()
+            .find_map(|key| self.rules.get(*key)?.cite.as_deref())
+    }
+
+    /// A list of strings from the `[rules."<id>"]` table, or the default when the key is absent.
+    pub fn option_strings(&self, rule: &str, key: &str, default: &[&str]) -> Result<Vec<String>> {
+        let Some(value) = self.rules.get(rule).and_then(|r| r.options.get(key)) else {
+            return Ok(strings(default));
+        };
+        value
+            .as_array()
+            .and_then(|items| {
+                items
+                    .iter()
+                    .map(|v| v.as_str().map(str::to_owned))
+                    .collect()
+            })
+            .with_context(|| format!("`{key}` of `{rule}` is not a list of strings"))
     }
 
     /// A rule runs unless its ID, or a group that contains it, is in `disable`.

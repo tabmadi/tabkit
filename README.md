@@ -1,6 +1,6 @@
 # tabrules
 
-An opinionated linter for Simple English prose, code comments, and decision records. It ships one rule set, the [Simple English profile](docs/reference/profile.md), and checks the structure of an ADR set, in one binary.
+Opinionated checks and generators for the files of a repository: prose, code comments, decision records, workflows, and pins. It ships one rule set, the [Simple English profile](docs/reference/profile.md), and checks the structure of an ADR set, in one binary.
 
 tabrules has one maintainer. It is free to use under the Apache License 2.0, and it makes no promise of support or compatibility. Every version is 0.y.z, and any release may break your gate.
 
@@ -16,8 +16,13 @@ tabrules has one maintainer. It is free to use under the Apache License 2.0, and
 | `docs` | Genre directories, the docs root, repeated filenames, single-file directories, and links to untracked files |
 | `requirement` | In `requirements.md` and `docs/requirements/`: the prefix, the row form, the EARS keyword, and an ID that a test cites. The rules act only when a requirements file exists |
 | `annotation` | A `(CI: <task>)` annotation names a recipe in `justfile` |
+| `workflow` | A workflow step calls a `just` recipe and holds no pipeline logic |
+| `image` | An image reference or a workflow action does not float |
+| `script` | A script prints status through its log library |
+| `version` | `flake.nix` and `go.mod` or `pyproject.toml` name the same version line |
+| `just` | Every public recipe has a doc comment |
 
-`tabrules rules` lists every rule ID. Comments are read in Go, TypeScript, JavaScript, Rust, Python, GDScript, shell, TOML, YAML, and SQL.
+`comment/workaround` checks that a workaround names its pin or a recent check date. Each rule acts only when its input exists. `tabrules rules` lists every rule ID, and `tabrules gen --list` lists every generator. Comments are read in Go, TypeScript, JavaScript, Rust, Python, GDScript, shell, TOML, YAML, and SQL.
 
 ## Getting started
 

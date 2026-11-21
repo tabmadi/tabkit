@@ -1,0 +1,11 @@
+on: push
+jobs:
+  a:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@main
+      - run: curl example.test
+      - run: |
+          set -euo pipefail
+          nix develop --command just ci
+          nix develop --command go test

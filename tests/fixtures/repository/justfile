@@ -1,0 +1,10 @@
+# Has a doc comment
+good:
+    true
+
+bad:
+    true
+
+[private]
+hidden:
+    true

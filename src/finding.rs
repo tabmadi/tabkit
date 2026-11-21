@@ -7,6 +7,8 @@ pub struct Finding {
     pub line: usize,
     pub rule: &'static str,
     pub message: String,
+    /// The project's citation for the rule, from `cite` in its config.
+    pub cite: Option<String>,
 }
 
 impl Finding {
@@ -16,20 +18,21 @@ impl Finding {
             line,
             rule,
             message: message.into(),
+            cite: None,
         }
     }
 }
 
 impl fmt::Display for Finding {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        if self.line == 0 {
-            write!(f, "{}: {}: {}", self.path, self.rule, self.message)
-        } else {
-            write!(
-                f,
-                "{}:{}: {}: {}",
-                self.path, self.line, self.rule, self.message
-            )
+        write!(f, "{}", self.path)?;
+        if self.line != 0 {
+            write!(f, ":{}", self.line)?;
         }
+        write!(f, ": {}: {}", self.rule, self.message)?;
+        if let Some(cite) = &self.cite {
+            write!(f, " [{cite}]")?;
+        }
+        Ok(())
     }
 }

@@ -1,7 +1,7 @@
 # The toolchain, the git hooks, the tabrules package, and the checks, per ADR-0100. The tabnix module
 # holds every shared part, and this file adds the Rust parts.
 {
-  description = "An opinionated linter for Simple English prose, code comments, and decision records";
+  description = "Opinionated checks and generators for the files of a repository";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
@@ -34,6 +34,8 @@
             inherit (cargoToml.package) version;
             src = ./.;
             cargoLock.lockFile = ./Cargo.lock;
+            # The just/doc-comment rule reads the recipes through `just`, and a fixture covers it.
+            nativeCheckInputs = [ pkgs.just ];
             meta.mainProgram = "tabrules";
           };
         in

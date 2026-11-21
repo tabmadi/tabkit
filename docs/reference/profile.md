@@ -10,5 +10,6 @@ The default rule set of tabrules. A missing or empty `.config/tabrules.toml` run
 | Decision records | `adr`, `annotation` | The shape of each ADR, its index, its references, and the recipes it names |
 | Docs layout | `docs` | Genre directories, the docs root, and links to tracked files |
 | Requirements | `requirement` | The form of each requirement, and a test that cites its ID |
+| Repository | `workflow`, `image`, `script`, `version`, `just` | Thin workflows, pinned references, log output, version lines, and recipe docs |
 
 `tabrules rules` prints every rule ID with its text. To leave a rule out, see [Configuration](configuration.md).

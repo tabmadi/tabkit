@@ -6,15 +6,19 @@ mod chars;
 mod comment;
 mod docs;
 mod messages;
+mod pins;
 mod prose;
 mod requirement;
+mod workaround;
+mod workflow;
 
 use std::collections::BTreeMap;
 
-use anyhow::Result;
+use anyhow::{Result, bail};
 
 use crate::config::{Config, Paths};
 use crate::finding::Finding;
+use crate::r#gen::GENERATORS;
 use crate::markdown::{self, Doc};
 use crate::repo::Repo;
 
@@ -158,6 +162,34 @@ pub const RULES: &[(&str, &str)] = &[
         "annotation/task",
         "A `(CI: <task>)` annotation names a recipe in `justfile`",
     ),
+    (
+        "comment/workaround",
+        "A workaround names the pin it matches or a recent check date, and a retest",
+    ),
+    (
+        "workflow/thin",
+        "A workflow step calls a `just` recipe and holds no pipeline logic",
+    ),
+    (
+        "image/floating-tag",
+        "An image reference does not use a floating tag",
+    ),
+    (
+        "image/unpinned-action",
+        "A workflow action does not follow a branch",
+    ),
+    (
+        "script/log-vocabulary",
+        "A script prints status through its log library",
+    ),
+    (
+        "version/sync",
+        "`flake.nix` and the language file name the same version line",
+    ),
+    (
+        "just/doc-comment",
+        "Every public `just` recipe has a doc comment",
+    ),
 ];
 
 pub struct Ctx<'a> {
@@ -170,6 +202,11 @@ pub struct Ctx<'a> {
 }
 
 impl Ctx<'_> {
+    /// The globs of a rule's path key, or its defaults.
+    pub fn paths(&self, rule: &str, key: &str, default: &[&str]) -> Result<Paths> {
+        Paths::new(&self.cfg.option_strings(rule, key, default)?)
+    }
+
     /// The files a rule reads, in order.
     pub fn files(&self) -> impl Iterator<Item = &str> {
         self.repo
@@ -217,10 +254,34 @@ pub fn run(repo: &Repo, cfg: &Config) -> Result<Vec<Finding>> {
     found.extend(docs::check(&ctx)?);
     found.extend(messages::check(&ctx)?);
     found.extend(requirement::check(&ctx)?);
+    found.extend(workaround::check(&ctx));
+    found.extend(workflow::check(&ctx)?);
+    found.extend(pins::check(&ctx)?);
     found.retain(|f| cfg.enabled(f.rule) && !allowed(&ctx, f));
+    for f in &mut found {
+        f.cite = cfg.cite(f.rule).map(str::to_owned);
+    }
     found.sort();
     found.dedup();
     Ok(found)
+}
+
+/// Refuses a `[rules]` key that names no rule, generator, or group, so a typo never drops a citation.
+pub fn validate(cfg: &Config) -> Result<()> {
+    let ids = || {
+        RULES
+            .iter()
+            .map(|(id, _)| *id)
+            .chain(GENERATORS.iter().map(|g| g.id))
+    };
+    for key in cfg.rules.keys() {
+        let known =
+            key == "gen" || ids().any(|id| id == key || id.split('/').next() == Some(key.as_str()));
+        if !known {
+            bail!("`[rules.{key}]` names no rule or group. `tabrules rules` lists them");
+        }
+    }
+    Ok(())
 }
 
 /// A line that carries `tabrules:allow` opts out of every rule.
