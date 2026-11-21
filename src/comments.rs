@@ -74,7 +74,7 @@ static DIRECTIVE: LazyLock<Regex> = LazyLock::new(|| {
     re(concat!(
         r"(?i)^\s*(shellcheck\s|renovate:|yaml-language-server:|SPDX-|nolint|eslint-|biome-ignore|@?ts-|prettier-|",
         r"sqlc:|go:generate|go:build|go:embed|\+build|noqa|type:\s|pragma|pylint:|gdlint:|fmt:|clippy::|rustfmt::|",
-        r"tablint:allow|lint:comments-allow|name:\s\w+\s:|migrate:|/\s*<reference\s|istanbul |c8 |cspell:|vale )"
+        r"tabrules:allow|lint:comments-allow|name:\s\w+\s:|migrate:|/\s*<reference\s|istanbul |c8 |cspell:|vale )"
     ))
 });
 

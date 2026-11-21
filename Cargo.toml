@@ -1,10 +1,10 @@
 [package]
-name = "tablint"
+name = "tabrules"
 version = "0.3.0"
 edition = "2024"
 license = "Apache-2.0"
 publish = false
-repository = "https://github.com/tabmadi/tablint"
+repository = "https://github.com/tabmadi/tabrules"
 rust-version = "1.99"
 description = "An opinionated linter for Simple English prose, code comments, and decision records"
 

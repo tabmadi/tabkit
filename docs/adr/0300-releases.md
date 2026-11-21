@@ -5,9 +5,9 @@
 
 ## Context
 
-tablint has one owner and no promise of compatibility, per [ADR-0000](0000-foundations.md). A version number that claims stability would be false.
+tabrules has one owner and no promise of compatibility, per [ADR-0000](0000-foundations.md). A version number that claims stability would be false.
 
-A repository gets every tool through Nix, per [ADR-0100](0100-toolchain.md). So tablint ships as a flake package, not as an archive per platform.
+A repository gets every tool through Nix, per [ADR-0100](0100-toolchain.md). So tabrules ships as a flake package, not as an archive per platform.
 
 ## Decision
 
@@ -15,7 +15,7 @@ A repository gets every tool through Nix, per [ADR-0100](0100-toolchain.md). So 
 
 **The tag is plain.** A release is the tag `v0.y.z`, with no suffix such as `-beta`. The version in `Cargo.toml` matches the tag.
 
-**A repository pins a tag.** Its flake input is `github:tabmadi/tablint/v0.y.z`, and its `flake.lock` pins the commit. A new version reaches the repository only when it moves the input to a new tag, and its gate decides.
+**A repository pins a tag.** Its flake input is `github:tabmadi/tabrules/v0.y.z`, and its `flake.lock` pins the commit. A new version reaches the repository only when it moves the input to a new tag, and its gate decides.
 
 ## Consequences
 
@@ -28,5 +28,5 @@ The crate is not published to crates.io. `publish = false` in `Cargo.toml` preve
 - Every version is `0.y.z`. A tag is `v0.y.z`, with no suffix.
 - The version in `Cargo.toml` matches the tag.
 - A new or stricter rule bumps the minor version.
-- A repository pins tablint by a tag in its flake input.
+- A repository pins tabrules by a tag in its flake input.
 - The crate is never published to crates.io.

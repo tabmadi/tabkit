@@ -1,4 +1,4 @@
-//! `tablint.toml`. Every key has a default, and the defaults are the opinion: an empty file runs every rule.
+//! `tabrules.toml`. Every key has a default, and the defaults are the opinion: an empty file runs every rule.
 
 use std::path::Path;
 
@@ -6,7 +6,7 @@ use anyhow::{Context, Result};
 use globset::{Glob, GlobSet, GlobSetBuilder};
 use serde::Deserialize;
 
-pub const FILE_NAME: &str = ".config/tablint.toml";
+pub const FILE_NAME: &str = ".config/tabrules.toml";
 
 #[derive(Debug, Default, Deserialize)]
 #[serde(default, deny_unknown_fields, rename_all = "kebab-case")]
@@ -237,7 +237,7 @@ impl Default for Requirements {
 }
 
 impl Config {
-    /// Reads `.config/tablint.toml` under the root, or returns the defaults when the file is absent.
+    /// Reads `.config/tabrules.toml` under the root, or returns the defaults when the file is absent.
     pub fn load(root: &Path, explicit: Option<&Path>) -> Result<Self> {
         let path = explicit.map_or_else(|| root.join(FILE_NAME), Path::to_path_buf);
         if explicit.is_none() && !path.exists() {

@@ -1,4 +1,4 @@
-//! tablint: an opinionated linter for Simple English prose, code comments, and decision records.
+//! tabrules: an opinionated linter for Simple English prose, code comments, and decision records.
 
 mod comments;
 mod config;
@@ -29,7 +29,7 @@ enum Command {
         /// The repository root.
         #[arg(default_value = ".")]
         root: PathBuf,
-        /// A config file other than `<root>/.config/tablint.toml`.
+        /// A config file other than `<root>/.config/tabrules.toml`.
         #[arg(long)]
         config: Option<PathBuf>,
     },
@@ -74,7 +74,7 @@ fn check(root: &Path, config: Option<&Path>) -> anyhow::Result<bool> {
         .collect::<BTreeSet<_>>()
         .len();
     eprintln!(
-        "✗ {} findings in {files} files. `tablint rules` explains each rule",
+        "✗ {} findings in {files} files. `tabrules rules` explains each rule",
         found.len()
     );
     Ok(false)

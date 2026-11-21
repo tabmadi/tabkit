@@ -1,7 +1,7 @@
 # ADR-0200: Architecture
 
 - **Status:** Accepted
-- **Decides:** tablint is one Rust binary that parses a repository once into a model and runs built-in rules with stable IDs over it.
+- **Decides:** tabrules is one Rust binary that parses a repository once into a model and runs built-in rules with stable IDs over it.
 
 ## Context
 
@@ -23,17 +23,17 @@ Three needs decide the shape:
 
 ## Decision
 
-**The repository model is built once.** `git ls-files` gives the files: everything tracked, and anything new that git does not ignore. Outside a git work tree, such as the Nix sandbox, tablint walks the directory.
+**The repository model is built once.** `git ls-files` gives the files: everything tracked, and anything new that git does not ignore. Outside a git work tree, such as the Nix sandbox, tabrules walks the directory.
 
 Each Markdown file has two views. The prose view comes from pulldown-cmark: one unit per paragraph, heading, list item, and table cell, with a code span as one word. The fact view comes from a line scan: header fields, headings, tables, links, annotations, and `ADR-NNNN` mentions.
 
 Each source file in a known language becomes comment blocks. Strings, heredocs, and generated regions are data, not comments.
 
-**A rule is a function with a stable ID.** The ID is `<group>/<name>`, such as `simple/semicolon` or `adr/index`. `tablint rules` lists them. A rule with a new meaning takes a new ID.
+**A rule is a function with a stable ID.** The ID is `<group>/<name>`, such as `simple/semicolon` or `adr/index`. `tabrules rules` lists them. A rule with a new meaning takes a new ID.
 
-**The defaults are the opinion.** A missing or empty `.config/tablint.toml` runs every rule. A key sets a path or turns a rule off, per [ADR-0000](0000-foundations.md).
+**The defaults are the opinion.** A missing or empty `.config/tabrules.toml` runs every rule. A key sets a path or turns a rule off, per [ADR-0000](0000-foundations.md).
 
-**A line opts out with `tablint:allow`.** In Markdown it is an HTML comment, and in code it is a comment on the same line.
+**A line opts out with `tabrules:allow`.** In Markdown it is an HTML comment, and in code it is a comment on the same line.
 
 **The output is one finding per line**, as `path:line: rule: message`. The exit code is 0 for no finding, 1 for a finding, and 2 for an error.
 
@@ -41,7 +41,7 @@ Each source file in a known language becomes comment blocks. Strings, heredocs, 
 
 ## Consequences
 
-A rule that only one repository needs is still code in tablint. When it is too narrow for a built-in rule, the repository keeps its own check.
+A rule that only one repository needs is still code in tabrules. When it is too narrow for a built-in rule, the repository keeps its own check.
 
 ## Rules
 

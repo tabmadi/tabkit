@@ -13,4 +13,4 @@ TODO add a check.
 
 A dash — here.
 
-Is this allowed? <!-- tablint:allow -->
+Is this allowed? <!-- tabrules:allow -->

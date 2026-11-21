@@ -6,7 +6,7 @@ This guide is for any coding agent that works in this repo. `AGENTS.md` is the o
 
 ## Read first
 
-- [ADR-0000](docs/adr/0000-foundations.md): what tablint is and the ADR process.
+- [ADR-0000](docs/adr/0000-foundations.md): what tabrules is and the ADR process.
 - [ADR-0200](docs/adr/0200-architecture.md): the repository model, the rule IDs, and the fixtures.
 - [docs/adr/README.md](docs/adr/README.md): the ADR index. To check a convention, grep the `Rules` sections first.
 
@@ -26,7 +26,7 @@ Every text follows the Simple English profile in [ADR-0001](docs/adr/0001-docume
 | `src/repo.rs`, `src/markdown.rs`, `src/comments.rs` | The repository model: files, Markdown views, and comment blocks |
 | `src/simple.rs`, `src/constructs.rs` | The word lists and patterns of ADR-0001 |
 | `src/rules/` | One module per rule group, and `RULES`, the table of every rule ID |
-| `src/config.rs` | `.config/tablint.toml` and its defaults |
+| `src/config.rs` | `.config/tabrules.toml` and its defaults |
 | `tests/fixtures/` | Small repositories that break rules on purpose, with their exact output |
 
 ## Working in the repo

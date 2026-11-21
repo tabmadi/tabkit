@@ -10,7 +10,7 @@ default:
 setup:
     nix develop --command cargo fetch --locked
 
-# Build the release binary at target/release/tablint
+# Build the release binary at target/release/tabrules
 build: in-shell
     cargo build --release --locked
 
@@ -20,14 +20,14 @@ test: in-shell
 
 # Write the expected fixture output again after a deliberate change, then review the diff
 bless: in-shell
-    TABLINT_BLESS=1 cargo test --locked
+    TABRULES_BLESS=1 cargo test --locked
 
 # Rust format and clippy, with every warning an error
 lint-rust: in-shell
     cargo fmt --check
     cargo clippy --all-targets --locked -- -D warnings
 
-# The repo's own prose, comments, and ADRs, checked by the tablint that the working tree builds
+# The repo's own prose, comments, and ADRs, checked by the tabrules that the working tree builds
 lint-prose: in-shell
     cargo run --quiet --locked -- check
 

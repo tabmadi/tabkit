@@ -84,7 +84,7 @@ pub struct Doc {
     pub annotations: Vec<Annotation>,
     pub mentions: Vec<Mention>,
     pub units: Vec<Unit>,
-    /// Lines that carry `tablint:allow`. No finding is reported on them.
+    /// Lines that carry `tabrules:allow`. No finding is reported on them.
     pub allowed: BTreeSet<usize>,
 }
 
@@ -126,7 +126,7 @@ fn scan_lines(path: &str, text: &str, doc: &mut Doc) {
         if in_fence {
             continue;
         }
-        if line.contains("tablint:allow") {
+        if line.contains("tabrules:allow") {
             doc.allowed.insert(n);
         }
         let trimmed = line.trim();

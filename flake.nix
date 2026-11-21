@@ -1,4 +1,4 @@
-# The toolchain, the git hooks, the tablint package, and the checks, per ADR-0100. The tabnix module
+# The toolchain, the git hooks, the tabrules package, and the checks, per ADR-0100. The tabnix module
 # holds every shared part, and this file adds the Rust parts.
 {
   description = "An opinionated linter for Simple English prose, code comments, and decision records";
@@ -9,7 +9,7 @@
       url = "github:hercules-ci/flake-parts";
       inputs.nixpkgs-lib.follows = "nixpkgs";
     };
-    # tabnix uses tablint, so its tablint input follows this flake and never pins an older release.
+    # tabnix uses tabrules, so its tabrules input follows this flake and never pins an older release.
     tabnix = {
       url = "github:tabmadi/tabnix/v0.10.0";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -28,13 +28,13 @@
         let
           cargoToml = builtins.fromTOML (builtins.readFile ./Cargo.toml);
 
-          # The tablint binary. Building it also runs `cargo test`, with the fixture tests.
-          tablint = pkgs.rustPlatform.buildRustPackage {
-            pname = "tablint";
+          # The tabrules binary. Building it also runs `cargo test`, with the fixture tests.
+          tabrules = pkgs.rustPlatform.buildRustPackage {
+            pname = "tabrules";
             inherit (cargoToml.package) version;
             src = ./.;
             cargoLock.lockFile = ./Cargo.lock;
-            meta.mainProgram = "tablint";
+            meta.mainProgram = "tabrules";
           };
         in
         {
@@ -47,7 +47,13 @@
           ];
           tabnix.compiler = true;
           # lint-prose checks this repo with the binary that the same commit builds.
-          tabnix.tablint = tablint;
+          tabnix.tablint = pkgs.symlinkJoin {
+            name = "tabrules-with-tablint-name";
+            paths = [ tabrules ];
+            # The lint-prose check of tabnix v0.10.0 calls the binary by its former name.
+            postBuild = "ln -s tabrules $out/bin/tablint";
+            meta.mainProgram = "tabrules";
+          };
 
           tabnix.hooks.rust = {
             name = "cargo fmt";
@@ -59,10 +65,10 @@
             pass_filenames = false;
           };
 
-          packages.default = tablint;
+          packages.default = tabrules;
 
-          checks.build = tablint;
-          checks.lint-rust = tablint.overrideAttrs (old: {
+          checks.build = tabrules;
+          checks.lint-rust = tabrules.overrideAttrs (old: {
             pname = "lint-rust";
             nativeBuildInputs = old.nativeBuildInputs ++ [
               pkgs.clippy

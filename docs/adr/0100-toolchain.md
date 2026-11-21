@@ -1,7 +1,7 @@
 # ADR-0100: Toolchain
 
 - **Status:** Accepted
-- **Decides:** Nix pins every tool, builds tablint, and runs every check, `just` runs every task, and Zed is the supported editor.
+- **Decides:** Nix pins every tool, builds tabrules, and runs every check, `just` runs every task, and Zed is the supported editor.
 
 ## Context
 
@@ -12,7 +12,7 @@ A tool choice is worth something only when every machine reproduces it. Four fai
 3. A check runs only in CI, so every local commit passes it.
 4. A pin goes stale because nobody updates it.
 
-tablint is also a tool that other repos install. The mechanism that pins its own tools must also ship it.
+tabrules is also a tool that other repos install. The mechanism that pins its own tools must also ship it.
 
 | Option | Verdict |
 | --- | --- |
@@ -30,7 +30,7 @@ tablint is also a tool that other repos install. The mechanism that pins its own
 
 | Tool | Owns |
 | --- | --- |
-| Nix with flakes | Tool versions, the dev shell, the tablint package, and the sandboxed checks |
+| Nix with flakes | Tool versions, the dev shell, the tabrules package, and the sandboxed checks |
 | Rust, with cargo, clippy, and rustfmt | The build, the Rust lint and format, and the tests |
 | `just` | Tasks |
 | Zed | The supported editor, with its project settings in `.zed/` |
@@ -60,7 +60,7 @@ Nix decides what is installed, and `just` decides what runs.
 | Recipe | Does |
 | --- | --- |
 | `setup` | Builds the dev shell, downloads the crates, and installs the git hooks |
-| `build` | Builds the release binary at `target/release/tablint` |
+| `build` | Builds the release binary at `target/release/tabrules` |
 | `format` | Applies every formatter |
 | `lint` | Runs every linter |
 | `test` | Runs the unit tests and the fixture tests |
@@ -99,7 +99,7 @@ Every tool config lives in `.config/`. A file that its tool reads only at the ro
 | Tool | How it finds its config in `.config/` |
 | --- | --- |
 | rumdl | By itself |
-| tablint | By itself |
+| tabrules | By itself |
 | gitleaks | An environment variable that tabnix sets |
 | cog | `--config` in every recipe, hook, and workflow |
 | dprint | The wrapper in tabnix |
@@ -110,7 +110,7 @@ The `just` recipes are the only supported way to run a tool. A tool that someone
 
 Every check is a derivation under `checks` in `flake.nix`. `nix flake check` builds each one in the Nix sandbox from the files that git tracks. So a local change that git does not track cannot make a check pass.
 
-The `build` check builds the package and runs `cargo test`. `lint-rust` runs rustfmt and clippy with every warning as an error. tabnix uses tablint, so this repo sets `tabnix.tablint` to its own build. `lint-prose` runs tablint on this repo with the binary of the same commit. So a change to a rule meets this repo's own text first.
+The `build` check builds the package and runs `cargo test`. `lint-rust` runs rustfmt and clippy with every warning as an error. tabnix uses tabrules, so this repo sets `tabnix.tablint` to its own build. `lint-prose` runs tabrules on this repo with the binary of the same commit. So a change to a rule meets this repo's own text first.
 
 | When | What runs |
 | --- | --- |

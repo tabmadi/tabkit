@@ -11,4 +11,4 @@ src/orders/requirements.md:10: requirement/row: BIL-004 does not use the prefix 
 src/orders/requirements.md:10: requirement/untested: BIL-004 has no test that cites it. Write the test, or delete the requirement
 src/orders/requirements.md:11: requirement/row: write a requirement as one row: `| ABC-001 | sentence |`
 src/orders/requirements.md:12: requirement/row: ORD-001 is already defined at src/orders/requirements.md:7
-✗ 13 findings in 4 files. `tablint rules` explains each rule
+✗ 13 findings in 4 files. `tabrules rules` explains each rule

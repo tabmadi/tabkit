@@ -58,4 +58,4 @@ src/main.go:11: comment/changelog: git holds authorship and dates
 src/main.go:15: comment/echo-doc: state a fact that the signature of `NewServer` cannot: units, empty values, bounds, side effects, or errors. Otherwise delete it
 src/run.sh:3: construct/hedge: hedge `basically`: decide. A hedge is an unfinished decision
 src/tool.gd:6: simple/question: question `n?`: write the answer as a statement
-✗ 60 findings in 12 files. `tablint rules` explains each rule
+✗ 60 findings in 12 files. `tabrules rules` explains each rule

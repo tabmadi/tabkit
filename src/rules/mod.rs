@@ -1,4 +1,4 @@
-//! The rules, grouped by what they read. Each rule ID is `<group>/<name>`, and `disable` in `tablint.toml` takes
+//! The rules, grouped by what they read. Each rule ID is `<group>/<name>`, and `disable` in `tabrules.toml` takes
 //! either form.
 
 mod adr;
@@ -18,7 +18,7 @@ use crate::finding::Finding;
 use crate::markdown::{self, Doc};
 use crate::repo::Repo;
 
-/// Every rule, with what it enforces. `tablint rules` prints this table.
+/// Every rule, with what it enforces. `tabrules rules` prints this table.
 pub const RULES: &[(&str, &str)] = &[
     (
         "simple/semicolon",
@@ -223,7 +223,7 @@ pub fn run(repo: &Repo, cfg: &Config) -> Result<Vec<Finding>> {
     Ok(found)
 }
 
-/// A line that carries `tablint:allow` opts out of every rule.
+/// A line that carries `tabrules:allow` opts out of every rule.
 fn allowed(ctx: &Ctx<'_>, f: &Finding) -> bool {
     if let Some(doc) = ctx.docs.get(f.path.as_str()) {
         return doc.allowed.contains(&f.line);
@@ -232,6 +232,6 @@ fn allowed(ctx: &Ctx<'_>, f: &Finding) -> bool {
         && ctx.repo.read(&f.path).is_some_and(|t| {
             t.lines()
                 .nth(f.line - 1)
-                .is_some_and(|l| l.contains("tablint:allow"))
+                .is_some_and(|l| l.contains("tabrules:allow"))
         })
 }

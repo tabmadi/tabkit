@@ -1,5 +1,5 @@
-//! Runs tablint on each fixture repository and compares its output with `<fixture>.expected`. Run with
-//! `TABLINT_BLESS=1` to write the expected output after a deliberate change, then review the diff.
+//! Runs tabrules on each fixture repository and compares its output with `<fixture>.expected`. Run with
+//! `TABRULES_BLESS=1` to write the expected output after a deliberate change, then review the diff.
 
 use std::path::Path;
 use std::process::Command;
@@ -13,18 +13,18 @@ fn fixtures() {
         if !root.is_dir() {
             continue;
         }
-        let out = Command::new(env!("CARGO_BIN_EXE_tablint"))
+        let out = Command::new(env!("CARGO_BIN_EXE_tabrules"))
             .arg("check")
             .arg(&root)
             .output()
-            .expect("tablint runs");
+            .expect("tabrules runs");
         let got = format!(
             "{}{}",
             String::from_utf8_lossy(&out.stdout),
             String::from_utf8_lossy(&out.stderr)
         );
         let expected = root.with_extension("expected");
-        if std::env::var_os("TABLINT_BLESS").is_some() {
+        if std::env::var_os("TABRULES_BLESS").is_some() {
             std::fs::write(&expected, &got).expect("the expected file is writable");
         }
         let want = std::fs::read_to_string(&expected).expect("each fixture has an expected file");
