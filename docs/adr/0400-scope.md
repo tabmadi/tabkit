@@ -38,6 +38,8 @@ The drivers for a YAML parser:
 
 **A rule whose input exists in most repositories is opt-in.** It runs only when a `[rules]` table adopts it, because a repository enforces a rule only after its own decision states it.
 
+**A slow rule is on demand.** A rule that renders charts or lists packages runs only when `--only` names it, so a commit hook stays fast.
+
 **A key in `[rules]` must name a rule, a generator, or a group.** Any other key is an error, so a typo never drops a citation.
 
 ## Consequences

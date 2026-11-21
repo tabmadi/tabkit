@@ -9,6 +9,14 @@ use serde::Deserialize;
 
 pub const FILE_NAME: &str = ".config/tabrules.toml";
 
+/// Rules that run another slow program or judge one moment of a repository, so they run only when `--only` names them.
+pub const ON_DEMAND: &[&str] = &[
+    "kube/resource-governance",
+    "go/service-deps",
+    "edge/strip-headers",
+    "project/identity",
+];
+
 /// Rules that run only when a `[rules]` table adopts them.
 pub const OPT_IN: &[&str] = &[
     "image/floating-tag",
@@ -352,13 +360,17 @@ impl Config {
         });
         let group = rule.split('/').next().unwrap_or(rule);
         let adopted = self.rules.contains_key(rule) || self.rules.contains_key(group);
-        let selected = self.only.is_empty()
-            || self.only.iter().any(|o| {
-                rule == o
-                    || rule
-                        .strip_prefix(o.as_str())
-                        .is_some_and(|rest| rest.starts_with('/'))
-            });
+        let named = self.only.iter().any(|o| {
+            rule == o
+                || rule
+                    .strip_prefix(o.as_str())
+                    .is_some_and(|rest| rest.starts_with('/'))
+        });
+        let selected = if self.only.is_empty() {
+            !ON_DEMAND.contains(&rule)
+        } else {
+            named
+        };
         selected && !disabled && (adopted || !OPT_IN.contains(&rule))
     }
 }

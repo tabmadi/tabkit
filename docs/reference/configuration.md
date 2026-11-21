@@ -83,4 +83,6 @@ These rules run only when a `[rules]` table adopts them, for the rule or for its
 
 `tabrules check --only money,go/call-args` runs only those rule IDs or groups. An opt-in rule still needs its `[rules]` table.
 
+Four rules run only when `--only` names them or their group: `kube/resource-governance`, `go/service-deps`, `edge/strip-headers`, and `project/identity`. They call a slow program or judge one moment of a repository.
+
 A line opts out of every rule with `tabrules:allow`, in an HTML comment in Markdown or in a comment in code.
