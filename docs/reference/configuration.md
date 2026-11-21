@@ -46,6 +46,18 @@ cite = "ADR-0111"
 | `api/audience` | `specs`, `values` |
 | `edge/api-wildcard` | `access-rules` |
 | `naming/resource` | `roles-doc`, `environments`, `local-tier`, `inventory`, `sops`, `overlays` |
+| `helm/dependency-fallback` | `paths` |
+| `helm/app-version` | `paths` |
+| `project/identity` | `footprints`, `init-script`, `project-file`, `inventory`, `apex`, `exempt` |
+| `edge/auth-inline` | `values`, `required`, `source` |
+| `edge/l7-routes` | `paths` |
+| `edge/strip-headers` | `manifests`, `chart`, `forward-auth`, `strip` |
+| `gitops/env-scope` | `root` |
+| `gitops/parity` | `overlay`, `allowlist` |
+| `service/ports` | `registry`, `reserved` |
+| `service/contract` | `values-root`, `linter-config` |
+| `service/databases` | `values`, `local-secret`, `network-policy`, `secret-docs` |
+| `service/workspace-copies` | `dockerfile` |
 | `adr/adoption-components` | `inventory`, `adoption`, `section` |
 | `adr/deferral-register` | `register`, `adr-dir`, `exempt` |
 | `adr/tool-register` | `register`, `adr-dir` |
@@ -62,6 +74,6 @@ cite = "ADR-0111"
 
 A generator writes nothing until its first key is set: `rules-path`, `output`, `source`, `out-dir`, or `doc`.
 
-These rules run only when a `[rules]` table adopts them, for the rule or for its group: `image/floating-tag`, `image/unpinned-action`, `script/log-vocabulary`, `docs/headcount`, `docs/stack-table`, and `docs/principles`. Their input exists in most repositories.
+These rules run only when a `[rules]` table adopts them, for the rule or for its group: `image/floating-tag`, `image/unpinned-action`, `script/log-vocabulary`, `docs/headcount`, `docs/stack-table`, `docs/principles`, `project/identity`, `service/node-scope`, `service/contract`, `helm/app-version`, `sql/pii-tag`, `api/audience`, and `api/prefixes`. Their input exists in most repositories.
 
 A line opts out of every rule with `tabrules:allow`, in an HTML comment in Markdown or in a comment in code.

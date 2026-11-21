@@ -18,6 +18,7 @@ tabrules has one maintainer. It is free to use under the Apache License 2.0, and
 | `annotation` | A `(CI: <task>)` annotation names a recipe in `justfile` |
 | `frontend` | Message catalogues agree, classes are direction-neutral, tokens meet WCAG contrast, and fixtures are typed against an SDK |
 | `sql`, `alert`, `api`, `edge`, `naming` | Personal-data tags, alert severities, API audience and prefixes, edge access rules, and resource names |
+| `helm`, `gitops`, `service`, `project` | Chart versions, environment overlays, the artifacts of each service, and the identity of a copied project |
 | `workflow` | A workflow step calls a `just` recipe and holds no pipeline logic |
 | `image` | An image reference or a workflow action does not float |
 | `script` | A script prints status through its log library |

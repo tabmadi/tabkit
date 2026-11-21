@@ -13,6 +13,7 @@ mod platform;
 mod prose;
 mod registers;
 mod requirement;
+mod services;
 mod workaround;
 mod workflow;
 
@@ -235,6 +236,55 @@ pub const RULES: &[(&str, &str)] = &[
         "Resource names follow project, env, role, and an optional ordinal",
     ),
     (
+        "helm/dependency-fallback",
+        "`helm dependency build` falls back to `update`",
+    ),
+    (
+        "helm/app-version",
+        "The appVersion of a chart names the release it deploys",
+    ),
+    (
+        "project/identity",
+        "A project no longer carries the identity of its source",
+    ),
+    (
+        "edge/auth-inline",
+        "Auth config has one home, and the frontend has one auth path",
+    ),
+    (
+        "edge/l7-routes",
+        "A route allowlist uses only cluster operations",
+    ),
+    (
+        "edge/strip-headers",
+        "A forward-auth route strips identity headers first",
+    ),
+    (
+        "gitops/env-scope",
+        "A bootstrap directory names only its own environment",
+    ),
+    (
+        "gitops/parity",
+        "A deployed values key exists locally or has a listed reason",
+    ),
+    (
+        "service/ports",
+        "Each service binds its own registered local port",
+    ),
+    (
+        "service/contract",
+        "Every service provides the same artifacts",
+    ),
+    (
+        "service/databases",
+        "A service that owns a schema has its database and access",
+    ),
+    (
+        "service/workspace-copies",
+        "Every workspace member is copied into the image build",
+    ),
+    ("service/node-scope", "npm stays inside the Node workspace"),
+    (
         "comment/workaround",
         "A workaround names the pin it matches or a recent check date, and a retest",
     ),
@@ -333,6 +383,7 @@ pub fn run(repo: &Repo, cfg: &Config) -> Result<Vec<Finding>> {
     found.extend(drift::check(&ctx)?);
     found.extend(frontend::check(&ctx)?);
     found.extend(platform::check(&ctx)?);
+    found.extend(services::check(&ctx)?);
     found.retain(|f| cfg.enabled(f.rule) && !allowed(&ctx, f));
     for f in &mut found {
         f.cite = cfg.cite(f.rule).map(str::to_owned);

@@ -17,6 +17,13 @@ pub const OPT_IN: &[&str] = &[
     "docs/headcount",
     "docs/stack-table",
     "docs/principles",
+    "project/identity",
+    "service/node-scope",
+    "service/contract",
+    "helm/app-version",
+    "sql/pii-tag",
+    "api/audience",
+    "api/prefixes",
 ];
 
 #[derive(Debug, Default, Deserialize)]
