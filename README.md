@@ -34,14 +34,14 @@ tabrules has one maintainer. It is free to use under the Apache License 2.0, and
 Install tabrules with cargo, at a release tag:
 
 ```bash
-cargo install --locked --git https://github.com/tabmadi/tabrules --tag v0.3.0
+cargo install --locked --git https://github.com/tabmadi/tabrules --tag v0.4.0
 ```
 
 Or add it as a flake input:
 
 ```nix
 inputs.tabrules = {
-  url = "github:tabmadi/tabrules/v0.3.0";
+  url = "github:tabmadi/tabrules/v0.4.0";
   inputs.nixpkgs.follows = "nixpkgs";
 };
 ```
