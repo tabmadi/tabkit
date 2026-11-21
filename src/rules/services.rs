@@ -1089,7 +1089,7 @@ mod tests {
     #[test]
     fn a_database_statement_is_read() {
         let found: Vec<String> = CREATE_DATABASE
-            .captures_iter("  CREATE DATABASE orders;\nSELECT 1;\nCREATE DATABASE orgs OWNER x;")
+            .captures_iter("  CREATE DATABASE orders;\nSELECT 1;\nCREATE DATABASE orgs TEMPLATE x;")
             .map(|m| m[1].to_owned())
             .collect();
         assert_eq!(found, ["orders", "orgs"]);
