@@ -110,7 +110,7 @@ The `just` recipes are the only supported way to run a tool. A tool that someone
 
 Every check is a derivation under `checks` in `flake.nix`. `nix flake check` builds each one in the Nix sandbox from the files that git tracks. So a local change that git does not track cannot make a check pass.
 
-The `build` check builds the package and runs `cargo test`. `lint-rust` runs rustfmt and clippy with every warning as an error. tabnix uses tabrules, so this repo sets `tabnix.tablint` to its own build. `lint-prose` runs tabrules on this repo with the binary of the same commit. So a change to a rule meets this repo's own text first.
+The `build` check builds the package and runs `cargo test`. `lint-rust` runs rustfmt and clippy with every warning as an error. tabnix uses tabrules, so this repo sets `tabnix.tabrules.package` to its own build. `lint-prose` runs tabrules on this repo with the binary of the same commit. So a change to a rule meets this repo's own text first.
 
 | When | What runs |
 | --- | --- |

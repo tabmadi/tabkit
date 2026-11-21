@@ -11,10 +11,10 @@
     };
     # tabnix uses tabrules, so its tabrules input follows this flake and never pins an older release.
     tabnix = {
-      url = "github:tabmadi/tabnix/v0.10.0";
+      url = "github:tabmadi/tabnix/v0.11.0";
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.flake-parts.follows = "flake-parts";
-      inputs.tablint.follows = "";
+      inputs.tabrules.follows = "";
     };
   };
 
@@ -49,13 +49,7 @@
           ];
           tabnix.compiler = true;
           # lint-prose checks this repo with the binary that the same commit builds.
-          tabnix.tablint = pkgs.symlinkJoin {
-            name = "tabrules-with-tablint-name";
-            paths = [ tabrules ];
-            # The lint-prose check of tabnix v0.10.0 calls the binary by its former name.
-            postBuild = "ln -s tabrules $out/bin/tablint";
-            meta.mainProgram = "tabrules";
-          };
+          tabnix.tabrules.package = tabrules;
 
           tabnix.hooks.rust = {
             name = "cargo fmt";

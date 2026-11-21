@@ -269,19 +269,19 @@
         "nixpkgs": [
           "nixpkgs"
         ],
-        "tablint": []
+        "tabrules": []
       },
       "locked": {
-        "lastModified": 1795225444,
-        "narHash": "sha256-CxLkXojgmS/Al7/wKDJ4zwvrNr0Ow5Nyk8ArXjwoHhE=",
+        "lastModified": 1795231977,
+        "narHash": "sha256-mJjeeYY9V2GJZ+GEX1mBOBVRm43+KFEd0scBRciChhA=",
         "owner": "tabmadi",
         "repo": "tabnix",
-        "rev": "ac31a50f722a97b77ccdcaf7e4d798f1f611d4f3",
+        "rev": "ece8e297e511c04c9372442ac9149c39bcf627ca",
         "type": "github"
       },
       "original": {
         "owner": "tabmadi",
-        "ref": "v0.10.0",
+        "ref": "v0.11.0",
         "repo": "tabnix",
         "type": "github"
       }
