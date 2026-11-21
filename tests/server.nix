@@ -33,7 +33,8 @@ pkgs.testers.runNixOSTest {
   };
 
   testScript = ''
-    ssh = "ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=5"
+    # The -n flag keeps ssh off stdin, which carries the commands of the test driver.
+    ssh = "ssh -n -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=5"
 
     start_all()
     server.wait_for_unit("sshd.service")
