@@ -144,7 +144,7 @@ Other editors use the same dev shell with no committed config. `just format` fix
 - Zed needs direnv, and nix-direnv for a fast reload. Each engineer allows `.envrc` once.
 - A push runs the full gate locally first, so a slow gate makes every push slow. `git push --no-verify` skips it, and CI still runs it.
 - CI downloads every tool on each run unless the workflow has a binary cache.
-- Renovate needs its GitHub app on the repo. Without it, the pins go stale.
+- The `renovate` workflow needs the `RENOVATE_TOKEN` secret. Without it, the workflow skips the run, and the pins go stale.
 
 ## Rules
 
