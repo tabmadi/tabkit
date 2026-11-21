@@ -9,6 +9,7 @@ mod drift;
 mod frontend;
 mod messages;
 mod pins;
+mod platform;
 mod prose;
 mod registers;
 mod requirement;
@@ -206,6 +207,34 @@ pub const RULES: &[(&str, &str)] = &[
         "A frontend fixture is typed against a generated SDK",
     ),
     (
+        "sql/pii-tag",
+        "A column that holds personal data by its name has a `pii:` tag",
+    ),
+    (
+        "alert/severity",
+        "Every alert has an allowed severity, and a dead man's switch exists",
+    ),
+    (
+        "api/audience",
+        "The audience of each operation matches the edge exposure of its service",
+    ),
+    (
+        "api/prefixes",
+        "Each resource prefix of the API has one owner, and spec and routes agree",
+    ),
+    (
+        "edge/api-wildcard",
+        "An edge rule lists its resources and has no bare wildcard after /api/",
+    ),
+    (
+        "edge/authorizer",
+        "An ops dashboard rule authorizes through remote_json",
+    ),
+    (
+        "naming/resource",
+        "Resource names follow project, env, role, and an optional ordinal",
+    ),
+    (
         "comment/workaround",
         "A workaround names the pin it matches or a recent check date, and a retest",
     ),
@@ -303,6 +332,7 @@ pub fn run(repo: &Repo, cfg: &Config) -> Result<Vec<Finding>> {
     found.extend(registers::check(&ctx)?);
     found.extend(drift::check(&ctx)?);
     found.extend(frontend::check(&ctx)?);
+    found.extend(platform::check(&ctx)?);
     found.retain(|f| cfg.enabled(f.rule) && !allowed(&ctx, f));
     for f in &mut found {
         f.cite = cfg.cite(f.rule).map(str::to_owned);

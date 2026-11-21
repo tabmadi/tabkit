@@ -41,6 +41,11 @@ cite = "ADR-0111"
 | `frontend/logical-property` | `paths` |
 | `frontend/contrast` | `theme` |
 | `frontend/fixture` | `paths`, `seams`, `sdks` |
+| `sql/pii-tag` | `paths` |
+| `alert/severity` | `paths`, `allowed`, `watchdog` |
+| `api/audience` | `specs`, `values` |
+| `edge/api-wildcard` | `access-rules` |
+| `naming/resource` | `roles-doc`, `environments`, `local-tier`, `inventory`, `sops`, `overlays` |
 | `adr/adoption-components` | `inventory`, `adoption`, `section` |
 | `adr/deferral-register` | `register`, `adr-dir`, `exempt` |
 | `adr/tool-register` | `register`, `adr-dir` |

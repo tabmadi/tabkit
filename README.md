@@ -17,6 +17,7 @@ tabrules has one maintainer. It is free to use under the Apache License 2.0, and
 | `requirement` | In `requirements.md` and `docs/requirements/`: the prefix, the row form, the EARS keyword, and an ID that a test cites. The rules act only when a requirements file exists |
 | `annotation` | A `(CI: <task>)` annotation names a recipe in `justfile` |
 | `frontend` | Message catalogues agree, classes are direction-neutral, tokens meet WCAG contrast, and fixtures are typed against an SDK |
+| `sql`, `alert`, `api`, `edge`, `naming` | Personal-data tags, alert severities, API audience and prefixes, edge access rules, and resource names |
 | `workflow` | A workflow step calls a `just` recipe and holds no pipeline logic |
 | `image` | An image reference or a workflow action does not float |
 | `script` | A script prints status through its log library |
