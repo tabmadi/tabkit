@@ -6,6 +6,7 @@ mod chars;
 mod comment;
 mod docs;
 mod drift;
+mod frontend;
 mod messages;
 mod pins;
 mod prose;
@@ -189,6 +190,22 @@ pub const RULES: &[(&str, &str)] = &[
         "A document states capacity as obligations, not as a number of people",
     ),
     (
+        "frontend/message-parity",
+        "Every message catalogue holds the same keys",
+    ),
+    (
+        "frontend/logical-property",
+        "A layout class uses its direction-neutral form",
+    ),
+    (
+        "frontend/contrast",
+        "Design tokens meet WCAG 2.2 AA contrast",
+    ),
+    (
+        "frontend/fixture",
+        "A frontend fixture is typed against a generated SDK",
+    ),
+    (
         "comment/workaround",
         "A workaround names the pin it matches or a recent check date, and a retest",
     ),
@@ -285,6 +302,7 @@ pub fn run(repo: &Repo, cfg: &Config) -> Result<Vec<Finding>> {
     found.extend(pins::check(&ctx)?);
     found.extend(registers::check(&ctx)?);
     found.extend(drift::check(&ctx)?);
+    found.extend(frontend::check(&ctx)?);
     found.retain(|f| cfg.enabled(f.rule) && !allowed(&ctx, f));
     for f in &mut found {
         f.cite = cfg.cite(f.rule).map(str::to_owned);

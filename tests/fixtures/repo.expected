@@ -36,6 +36,7 @@ docs/bad.md:14: char/banned: em dash: write two sentences, or use a colon or a c
 docs/guide: docs/single-file-dir: a directory that holds a single file groups nothing
 docs/stray: docs/single-file-dir: a directory that holds a single file groups nothing
 docs/stray/only.md: docs/genre: `docs/stray` is not a genre directory
+messages/de.json: frontend/message-parity: `de.json` is missing `home.count`, which is in `en.json`
 messages/de.json:3: simple/parentheses: home.title: parentheses `(nicht)`: write the aside as its own sentence, or delete it
 messages/de.json:3: simple/question: home.title: question `)?`: write the answer as a statement
 messages/de.json:3: simple/semicolon: home.title: semicolon `t;`: write two sentences, or use a colon
@@ -58,4 +59,4 @@ src/main.go:11: comment/changelog: git holds authorship and dates
 src/main.go:15: comment/echo-doc: state a fact that the signature of `NewServer` cannot: units, empty values, bounds, side effects, or errors. Otherwise delete it
 src/run.sh:3: construct/hedge: hedge `basically`: decide. A hedge is an unfinished decision
 src/tool.gd:6: simple/question: question `n?`: write the answer as a statement
-✗ 60 findings in 12 files. `tabrules rules` explains each rule
+✗ 61 findings in 12 files. `tabrules rules` explains each rule

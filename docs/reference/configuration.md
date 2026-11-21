@@ -38,6 +38,9 @@ cite = "ADR-0111"
 | `image/floating-tag` | `paths`, `exempt` |
 | `image/unpinned-action` | `paths` |
 | `script/log-vocabulary` | `paths`, `exempt` |
+| `frontend/logical-property` | `paths` |
+| `frontend/contrast` | `theme` |
+| `frontend/fixture` | `paths`, `seams`, `sdks` |
 | `adr/adoption-components` | `inventory`, `adoption`, `section` |
 | `adr/deferral-register` | `register`, `adr-dir`, `exempt` |
 | `adr/tool-register` | `register`, `adr-dir` |
