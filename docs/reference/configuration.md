@@ -62,6 +62,7 @@ cite = "ADR-0111"
 | `money/spec` | `specs`, `component` |
 | `money/no-float` | `skip` |
 | `money/typescript` | `skip` |
+| `kube/resource-governance` | `governance`, `charts`, `service-chart`, `shared-values`, `default-namespace`, `namespaces`, `chart-set`, `service-set`, `cpu-limit-allow` |
 | `adr/adoption-components` | `inventory`, `adoption`, `section` |
 | `adr/deferral-register` | `register`, `adr-dir`, `exempt` |
 | `adr/tool-register` | `register`, `adr-dir` |
@@ -78,6 +79,6 @@ cite = "ADR-0111"
 
 A generator writes nothing until its first key is set: `rules-path`, `output`, `source`, `out-dir`, or `doc`.
 
-These rules run only when a `[rules]` table adopts them, for the rule or for its group: `image/floating-tag`, `image/unpinned-action`, `script/log-vocabulary`, `docs/headcount`, `docs/stack-table`, `docs/principles`, `project/identity`, `service/node-scope`, `service/contract`, `helm/app-version`, `sql/pii-tag`, `api/audience`, `api/prefixes`, `go/call-args`, `go/activity-register`, `go/service-deps`, `money/spec`, `money/no-float`, and `money/typescript`. Their input exists in most repositories.
+These rules run only when a `[rules]` table adopts them, for the rule or for its group: `image/floating-tag`, `image/unpinned-action`, `script/log-vocabulary`, `docs/headcount`, `docs/stack-table`, `docs/principles`, `project/identity`, `service/node-scope`, `service/contract`, `helm/app-version`, `sql/pii-tag`, `api/audience`, `api/prefixes`, `go/call-args`, `go/activity-register`, `go/service-deps`, `money/spec`, `money/no-float`, `money/typescript`, and `kube/resource-governance`. Their input exists in most repositories.
 
 A line opts out of every rule with `tabrules:allow`, in an HTML comment in Markdown or in a comment in code.

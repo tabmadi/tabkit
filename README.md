@@ -20,6 +20,7 @@ tabrules has one maintainer. It is free to use under the Apache License 2.0, and
 | `sql`, `alert`, `api`, `edge`, `naming` | Personal-data tags, alert severities, API audience and prefixes, edge access rules, and resource names |
 | `helm`, `gitops`, `service`, `project` | Chart versions, environment overlays, the artifacts of each service, and the identity of a copied project |
 | `go`, `money` | Go call layout, Temporal activity registration, declared service dependencies, and the money type in specs, Go, and TypeScript |
+| `kube` | Rendered workloads fit the limit ranges and quotas of their namespaces |
 | `workflow` | A workflow step calls a `just` recipe and holds no pipeline logic |
 | `image` | An image reference or a workflow action does not float |
 | `script` | A script prints status through its log library |

@@ -8,6 +8,7 @@ mod docs;
 mod drift;
 mod frontend;
 pub mod golang;
+mod kube;
 mod messages;
 mod money;
 mod pins;
@@ -311,6 +312,10 @@ pub const RULES: &[(&str, &str)] = &[
         "A monetary TypeScript value is never a number",
     ),
     (
+        "kube/resource-governance",
+        "Rendered workloads fit the limit ranges and quotas of their namespaces",
+    ),
+    (
         "comment/workaround",
         "A workaround names the pin it matches or a recent check date, and a retest",
     ),
@@ -412,6 +417,7 @@ pub fn run(repo: &Repo, cfg: &Config) -> Result<Vec<Finding>> {
     found.extend(services::check(&ctx)?);
     found.extend(golang::check(&ctx)?);
     found.extend(money::check(&ctx)?);
+    found.extend(kube::check(&ctx)?);
     found.retain(|f| cfg.enabled(f.rule) && !allowed(&ctx, f));
     for f in &mut found {
         f.cite = cfg.cite(f.rule).map(str::to_owned);

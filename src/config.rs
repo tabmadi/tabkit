@@ -30,6 +30,7 @@ pub const OPT_IN: &[&str] = &[
     "money/spec",
     "money/no-float",
     "money/typescript",
+    "kube/resource-governance",
 ];
 
 #[derive(Debug, Default, Deserialize)]
