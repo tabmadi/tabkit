@@ -64,6 +64,14 @@ cache-push: in-shell
 test-nested:
     if [ -n "${CI:-}" ]; then echo "GitHub CI skips the nested microVM test, per ADR-0500."; elif [ -w /dev/kvm ]; then nix build .#nested-microvm-host --no-link --print-build-logs; else echo "The nested microVM test needs KVM. It did not run." >&2; exit 1; fi
 
+# Run Renovate over this repository, per ADR-0102. The renovate workflow calls it
+ci-renovate: in-shell
+    nix run --inputs-from . nixpkgs#renovate
+
+# Write the files that follow a dependency change, per ADR-0102. This repo has none
+deps-sync:
+    @true
+
 [private]
 in-shell:
     @test -n "${IN_NIX_SHELL:-}" || { echo "Enter the dev shell first: run nix develop, or allow direnv." >&2; exit 1; }
