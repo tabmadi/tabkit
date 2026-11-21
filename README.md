@@ -1,8 +1,8 @@
 # tabrules
 
-An opinionated linter for Simple English prose, code comments, and decision records. It checks the house style of [ADR-0001](docs/adr/0001-documentation-conventions.md) and the structure of an ADR set, in one binary.
+An opinionated linter for Simple English prose, code comments, and decision records. It ships one rule set, the [Simple English profile](docs/reference/profile.md), and checks the structure of an ADR set, in one binary.
 
-tabrules serves one owner's repositories. It is free to use under the Apache License 2.0, but it makes no promise of support or compatibility. Every version is 0.y.z, and any release may break your gate.
+tabrules has one maintainer. It is free to use under the Apache License 2.0, and it makes no promise of support or compatibility. Every version is 0.y.z, and any release may break your gate.
 
 ## What it does
 
@@ -21,15 +21,13 @@ tabrules serves one owner's repositories. It is free to use under the Apache Lic
 
 ## Getting started
 
-A repo that imports [tabnix](https://github.com/tabmadi/tabnix) gets tabrules in its dev shell, a `lint-prose` check, and a git hook. It adds only a recipe to `justfile`:
+Install tabrules with cargo, at a release tag:
 
-```just
-# Prose, comments, and ADRs, per ADR-0001
-lint-prose: in-shell
-    tabrules check
+```bash
+cargo install --locked --git https://github.com/tabmadi/tabrules --tag v0.3.0
 ```
 
-Another repo adds tabrules as a flake input, at a release tag:
+Or add it as a flake input:
 
 ```nix
 inputs.tabrules = {
@@ -38,32 +36,11 @@ inputs.tabrules = {
 };
 ```
 
-Each finding is one line: `path:line: rule: message`.
+Then run `tabrules check` at the root of a repository. Each finding is one line: `path:line: rule: message`.
 
 ## Configuration
 
-tabrules reads `.config/tabrules.toml`. An empty or missing file runs every rule with its defaults. A key sets a path or turns a rule off:
-
-```toml
-exclude = ["vendor/**"]
-disable = ["construct/status", "docs"]
-
-[adr]
-foreign = ["games"]
-index-matches-decides = false
-
-[docs]
-genre-dirs = ["adr", "guide", "reference"]
-root-files = ["README.md", "tool-register.md"]
-
-[messages]
-dir = "apps/frontend/src/messages"
-
-[requirements]
-tests = ["**/*.test.ts", "e2e/**/*.spec.ts"]
-```
-
-A line opts out of every rule with `tabrules:allow`, in an HTML comment in Markdown or in a comment in code.
+tabrules reads `.config/tabrules.toml`. An empty or missing file runs every rule with its defaults. [Configuration](docs/reference/configuration.md) lists the keys.
 
 ## Decisions
 

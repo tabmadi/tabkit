@@ -5,7 +5,7 @@
 
 ## Context
 
-tabrules has one owner and no promise of compatibility, per [ADR-0000](0000-foundations.md). A version number that claims stability would be false.
+tabrules has one maintainer and no promise of compatibility, per [ADR-0000](0000-foundations.md). A version number that claims stability would be false.
 
 A repository gets every tool through Nix, per [ADR-0100](0100-toolchain.md). So tabrules ships as a flake package, not as an archive per platform.
 

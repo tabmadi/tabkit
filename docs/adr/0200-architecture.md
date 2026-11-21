@@ -7,7 +7,7 @@
 
 The rules come from [ADR-0001](0001-documentation-conventions.md). They read three kinds of text: Markdown prose, code comments in many languages, and the structure of an ADR set across files.
 
-A trial replaced the owner's Go linters with Vale for the prose and Conftest with Rego for the cross-document rules. It matched every finding. It also added two tools and two rule languages, and the rules did not shrink. The comment parser stayed custom, because Vale does not read shell or GDScript comments.
+A trial ran Vale for the prose and Conftest with Rego for the cross-document rules, against a set of custom Go linters. It matched every finding. It also added two tools and two rule languages, and the rules did not shrink. The comment parser stayed custom, because Vale does not read shell or GDScript comments.
 
 Three needs decide the shape:
 
@@ -17,8 +17,8 @@ Three needs decide the shape:
 
 | Option | Verdict |
 | --- | --- |
-| **One Rust binary with built-in rules** | **Chosen. The owner chose Rust over Go to gain experience with it** |
-| One Go binary with built-in rules | Runner-up. It would reuse the Go linters as they are |
+| **One Rust binary with built-in rules** | **Chosen. Rust and Go both meet the three needs, and this choice has no technical driver** |
+| One Go binary with built-in rules | Runner-up. It meets the same three needs |
 | Vale and Conftest, with a Go extractor | Rejected after the trial. Its rules span YAML, Tengo, Rego, and Go |
 
 ## Decision

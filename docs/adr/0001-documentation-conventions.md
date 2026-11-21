@@ -1,7 +1,7 @@
 # ADR-0001: Documentation conventions
 
 - **Status:** Accepted
-- **Decides:** The house style for every text in the repo: Simple English on the ASD-STE100 model.
+- **Decides:** The writing rules for every text in the repo: Simple English on the ASD-STE100 model.
 
 ## Context
 

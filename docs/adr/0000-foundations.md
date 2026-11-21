@@ -1,19 +1,19 @@
 # ADR-0000: Foundations
 
 - **Status:** Accepted
-- **Decides:** tabrules is one owner's linter for prose, comments, and decision records, it is public and free to use, and every decision is an ADR.
+- **Decides:** tabrules is an opinionated linter for prose, comments, and decision records, it is public and free to use, and every decision is an ADR.
 
 ## Context
 
-The owner's repositories share one house style and one way to record decisions. Separate copies of the same checks drift apart, and a fix in one copy never reaches the others.
+A group of repositories that shares one writing style and one way to record decisions needs one check of both. Separate copies of the same checks drift apart, and a fix in one copy never reaches the others.
 
 The established linters each own one language or one format. None of them checks the Simple English profile, the comment rules, and the ADR set together.
 
 ## Decision
 
-tabrules is one binary that checks the rules of [ADR-0001](0001-documentation-conventions.md) and the structure of an ADR set. A repository gets it through the shared toolchain, or adds it as a flake input, per [ADR-0300](0300-releases.md).
+tabrules is one binary that checks the rules of [ADR-0001](0001-documentation-conventions.md) and the structure of an ADR set. A repository installs it with cargo or adds it as a flake input, per [ADR-0300](0300-releases.md).
 
-**It serves its owner.** The rules are the owner's opinion, and a default is a decision. A repository can turn a rule off, but it cannot redesign one. The code is public under the Apache License 2.0, and it makes no promise of support or compatibility.
+**It is opinionated.** A default is a decision. A repository can turn a rule off, but it cannot redesign one. The code is public under the Apache License 2.0. It has one maintainer and makes no promise of support or compatibility.
 
 **It checks only what nothing else checks.** Code style, Markdown structure, data formats, and secrets belong to the other linters of the toolchain, such as clippy, golangci-lint, rumdl, dprint, and gitleaks.
 
@@ -27,7 +27,7 @@ tabrules is one binary that checks the rules of [ADR-0001](0001-documentation-co
 
 ## Consequences
 
-A rule that suits the owner and not another user stays. Another user forks the repository or turns the rule off.
+A user who disagrees with a rule turns it off or forks the repository.
 
 One fix to a rule reaches every repository when its toolchain moves to the new tag.
 
