@@ -9,6 +9,16 @@ use serde::Deserialize;
 
 pub const FILE_NAME: &str = ".config/tabrules.toml";
 
+/// Rules that run only when a `[rules]` table adopts them.
+pub const OPT_IN: &[&str] = &[
+    "image/floating-tag",
+    "image/unpinned-action",
+    "script/log-vocabulary",
+    "docs/headcount",
+    "docs/stack-table",
+    "docs/principles",
+];
+
 #[derive(Debug, Default, Deserialize)]
 #[serde(default, deny_unknown_fields, rename_all = "kebab-case")]
 pub struct Config {
@@ -285,14 +295,47 @@ impl Config {
             .with_context(|| format!("`{key}` of `{rule}` is not a list of strings"))
     }
 
-    /// A rule runs unless its ID, or a group that contains it, is in `disable`.
+    /// One string from the `[rules."<id>"]` table.
+    pub fn option_str(&self, rule: &str, key: &str) -> Result<Option<String>> {
+        let Some(value) = self.rules.get(rule).and_then(|r| r.options.get(key)) else {
+            return Ok(None);
+        };
+        value
+            .as_str()
+            .map(|s| Some(s.to_owned()))
+            .with_context(|| format!("`{key}` of `{rule}` is not a string"))
+    }
+
+    /// A table of strings from the `[rules."<id>"]` table, as key and value pairs.
+    pub fn option_map(&self, rule: &str, key: &str) -> Result<Vec<(String, String)>> {
+        let Some(value) = self.rules.get(rule).and_then(|r| r.options.get(key)) else {
+            return Ok(Vec::new());
+        };
+        let table = value
+            .as_table()
+            .with_context(|| format!("`{key}` of `{rule}` is not a table"))?;
+        table
+            .iter()
+            .map(|(k, v)| {
+                v.as_str()
+                    .map(|s| (k.clone(), s.to_owned()))
+                    .with_context(|| format!("`{key}.{k}` of `{rule}` is not a string"))
+            })
+            .collect()
+    }
+
+    /// A rule runs unless its ID, or a group that contains it, is in `disable`. An opt-in rule also needs a
+    /// `[rules]` table, for itself or for its group, because its input exists in most repositories.
     pub fn enabled(&self, rule: &str) -> bool {
-        !self.disable.iter().any(|d| {
+        let disabled = self.disable.iter().any(|d| {
             rule == d
                 || rule
                     .strip_prefix(d.as_str())
                     .is_some_and(|rest| rest.starts_with('/'))
-        })
+        });
+        let group = rule.split('/').next().unwrap_or(rule);
+        let adopted = self.rules.contains_key(rule) || self.rules.contains_key(group);
+        !disabled && (adopted || !OPT_IN.contains(&rule))
     }
 }
 

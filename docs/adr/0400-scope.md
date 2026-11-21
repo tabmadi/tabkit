@@ -36,6 +36,8 @@ The drivers for a YAML parser:
 
 **A rule may run a program that reads its input.** Such a program is `git`, `just`, `helm`, or `go`. A rule that needs a missing optional program has no input and reports nothing.
 
+**A rule whose input exists in most repositories is opt-in.** It runs only when a `[rules]` table adopts it, because a repository enforces a rule only after its own decision states it.
+
 **A key in `[rules]` must name a rule, a generator, or a group.** Any other key is an error, so a typo never drops a citation.
 
 ## Consequences

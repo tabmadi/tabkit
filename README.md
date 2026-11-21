@@ -12,8 +12,8 @@ tabrules has one maintainer. It is free to use under the Apache License 2.0, and
 | `construct` | Intensifiers, hedges, meta-commentary, chronology, status words, planned work, and dated headings |
 | `char` | The em dash, en dash, ellipsis, and curly quotes, in every text file |
 | `comment` | Block length, paragraphs, commented-out code, author lines, banners, uncited `TODO`s, and doc comments that restate the name |
-| `adr` | The header, the one-sentence Decides line, the index, references, Related, and the section order |
-| `docs` | Genre directories, the docs root, repeated filenames, single-file directories, and links to untracked files |
+| `adr` | The header, the one-sentence Decides line, the index, references, Related, the section order, and the adoption, deferral, and tool registers |
+| `docs` | Genre directories, the docs root, repeated filenames, single-file directories, links to untracked files, and documents that repeat the ADR set |
 | `requirement` | In `requirements.md` and `docs/requirements/`: the prefix, the row form, the EARS keyword, and an ID that a test cites. The rules act only when a requirements file exists |
 | `annotation` | A `(CI: <task>)` annotation names a recipe in `justfile` |
 | `workflow` | A workflow step calls a `just` recipe and holds no pipeline logic |

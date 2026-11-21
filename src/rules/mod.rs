@@ -5,9 +5,11 @@ mod adr;
 mod chars;
 mod comment;
 mod docs;
+mod drift;
 mod messages;
 mod pins;
 mod prose;
+mod registers;
 mod requirement;
 mod workaround;
 mod workflow;
@@ -163,6 +165,30 @@ pub const RULES: &[(&str, &str)] = &[
         "A `(CI: <task>)` annotation names a recipe in `justfile`",
     ),
     (
+        "adr/adoption-components",
+        "Every component in the adoption document is in the inventory",
+    ),
+    (
+        "adr/deferral-register",
+        "An ADR that states a deferral has a row in the register",
+    ),
+    (
+        "adr/tool-register",
+        "The tool register and the comparison in each owning ADR agree",
+    ),
+    (
+        "docs/stack-table",
+        "The README stack table never presents an option that its ADR rejects",
+    ),
+    (
+        "docs/principles",
+        "The principles of the README and the foundations ADR agree with the ADR verdicts",
+    ),
+    (
+        "docs/headcount",
+        "A document states capacity as obligations, not as a number of people",
+    ),
+    (
         "comment/workaround",
         "A workaround names the pin it matches or a recent check date, and a retest",
     ),
@@ -257,6 +283,8 @@ pub fn run(repo: &Repo, cfg: &Config) -> Result<Vec<Finding>> {
     found.extend(workaround::check(&ctx));
     found.extend(workflow::check(&ctx)?);
     found.extend(pins::check(&ctx)?);
+    found.extend(registers::check(&ctx)?);
+    found.extend(drift::check(&ctx)?);
     found.retain(|f| cfg.enabled(f.rule) && !allowed(&ctx, f));
     for f in &mut found {
         f.cite = cfg.cite(f.rule).map(str::to_owned);

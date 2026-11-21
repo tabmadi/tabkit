@@ -1,5 +1,7 @@
 //! The generators. Each one reads the repository and returns whole files, so `--check` compares bytes.
 
+mod rules_index;
+
 use anyhow::{Context, Result, bail};
 
 use crate::config::Config;
@@ -19,7 +21,11 @@ pub struct Generator {
 }
 
 /// Every generator. `tabrules gen --list` prints this table.
-pub const GENERATORS: &[Generator] = &[];
+pub const GENERATORS: &[Generator] = &[Generator {
+    id: "gen/rules-index",
+    what: "The index of every ADR rule, and the security baseline",
+    run: rules_index::run,
+}];
 
 /// The generators to run: the named ones, or every enabled one when no name is given.
 pub fn select<'a>(

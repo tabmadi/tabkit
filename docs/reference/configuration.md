@@ -38,5 +38,14 @@ cite = "ADR-0111"
 | `image/floating-tag` | `paths`, `exempt` |
 | `image/unpinned-action` | `paths` |
 | `script/log-vocabulary` | `paths`, `exempt` |
+| `adr/adoption-components` | `inventory`, `adoption`, `section` |
+| `adr/deferral-register` | `register`, `adr-dir`, `exempt` |
+| `adr/tool-register` | `register`, `adr-dir` |
+| `docs/stack-table` | `readme` |
+| `docs/principles` | `foundations`, `adr-dir` |
+| `docs/headcount` | `paths`, `exempt` |
+| `gen/rules-index` | `rules-path`, `baseline-path`, `adr-dir`, `rules-intro`, `rules-outro`, `baseline-intro`, `security-areas` |
+
+These rules run only when a `[rules]` table adopts them, for the rule or for its group: `image/floating-tag`, `image/unpinned-action`, `script/log-vocabulary`, `docs/headcount`, `docs/stack-table`, and `docs/principles`. Their input exists in most repositories.
 
 A line opts out of every rule with `tabrules:allow`, in an HTML comment in Markdown or in a comment in code.
