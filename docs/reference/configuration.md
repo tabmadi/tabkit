@@ -45,6 +45,11 @@ cite = "ADR-0111"
 | `docs/principles` | `foundations`, `adr-dir` |
 | `docs/headcount` | `paths`, `exempt` |
 | `gen/rules-index` | `rules-path`, `baseline-path`, `adr-dir`, `rules-intro`, `rules-outro`, `baseline-intro`, `security-areas` |
+| `gen/data-classes` | `output`, `retention`, `header`, `footer`, `migrations` |
+| `gen/shared-components` | `source`, `specs` |
+| `gen/zod` | `out-dir`, `specs`, `skip`, `header` |
+
+A generator writes nothing until its first key is set: `rules-path`, `output`, `source`, or `out-dir`.
 
 These rules run only when a `[rules]` table adopts them, for the rule or for its group: `image/floating-tag`, `image/unpinned-action`, `script/log-vocabulary`, `docs/headcount`, `docs/stack-table`, and `docs/principles`. Their input exists in most repositories.
 

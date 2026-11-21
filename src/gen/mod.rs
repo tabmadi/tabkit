@@ -1,6 +1,9 @@
 //! The generators. Each one reads the repository and returns whole files, so `--check` compares bytes.
 
+mod data_classes;
 mod rules_index;
+mod shared_components;
+mod zod;
 
 use anyhow::{Context, Result, bail};
 
@@ -21,11 +24,28 @@ pub struct Generator {
 }
 
 /// Every generator. `tabrules gen --list` prints this table.
-pub const GENERATORS: &[Generator] = &[Generator {
-    id: "gen/rules-index",
-    what: "The index of every ADR rule, and the security baseline",
-    run: rules_index::run,
-}];
+pub const GENERATORS: &[Generator] = &[
+    Generator {
+        id: "gen/rules-index",
+        what: "The index of every ADR rule, and the security baseline",
+        run: rules_index::run,
+    },
+    Generator {
+        id: "gen/data-classes",
+        what: "The registry of classified columns and their retention",
+        run: data_classes::run,
+    },
+    Generator {
+        id: "gen/shared-components",
+        what: "The shared OpenAPI components that each spec reaches",
+        run: shared_components::run,
+    },
+    Generator {
+        id: "gen/zod",
+        what: "A zod schema for each JSON request body",
+        run: zod::run,
+    },
+];
 
 /// The generators to run: the named ones, or every enabled one when no name is given.
 pub fn select<'a>(

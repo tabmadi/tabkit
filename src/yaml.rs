@@ -16,6 +16,17 @@ pub fn string<'a>(node: &'a MarkedYaml<'_>) -> Option<&'a str> {
     }
 }
 
+/// The text of any scalar, with a number or a boolean in its plain form.
+pub fn text(node: &MarkedYaml<'_>) -> Option<String> {
+    match &node.data {
+        YamlData::Value(Scalar::String(s)) => Some(s.to_string()),
+        YamlData::Value(Scalar::Integer(n)) => Some(n.to_string()),
+        YamlData::Value(Scalar::FloatingPoint(n)) => Some(n.to_string()),
+        YamlData::Value(Scalar::Boolean(b)) => Some(b.to_string()),
+        _ => None,
+    }
+}
+
 /// The key and value pairs of a mapping, in source order.
 pub fn pairs<'a, 'b>(
     node: &'a MarkedYaml<'b>,

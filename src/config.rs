@@ -4,7 +4,7 @@ use std::collections::BTreeMap;
 use std::path::Path;
 
 use anyhow::{Context, Result};
-use globset::{Glob, GlobSet, GlobSetBuilder};
+use globset::{GlobBuilder, GlobSet, GlobSetBuilder};
 use serde::Deserialize;
 
 pub const FILE_NAME: &str = ".config/tabrules.toml";
@@ -350,7 +350,11 @@ impl Paths {
     pub fn new(globs: &[String]) -> Result<Self> {
         let mut set = GlobSetBuilder::new();
         for g in globs {
-            set.add(Glob::new(g).with_context(|| format!("glob {g}"))?);
+            let glob = GlobBuilder::new(g)
+                .literal_separator(true)
+                .build()
+                .with_context(|| format!("glob {g}"))?;
+            set.add(glob);
         }
         Ok(Self(set.build()?))
     }
