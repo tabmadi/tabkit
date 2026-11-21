@@ -446,6 +446,19 @@ pub fn validate(cfg: &Config) -> Result<()> {
     Ok(())
 }
 
+/// Refuses a `--only` name that matches no rule, so a typo never passes a gate that checked nothing.
+pub fn validate_names(names: &[String]) -> Result<()> {
+    for name in names {
+        let known = RULES
+            .iter()
+            .any(|(id, _)| id == name || id.split('/').next() == Some(name.as_str()));
+        if !known {
+            bail!("`{name}` names no rule or group. `tabrules rules` lists them");
+        }
+    }
+    Ok(())
+}
+
 /// A line that carries `tabrules:allow` opts out of every rule.
 fn allowed(ctx: &Ctx<'_>, f: &Finding) -> bool {
     if let Some(doc) = ctx.docs.get(f.path.as_str()) {

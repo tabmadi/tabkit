@@ -49,6 +49,9 @@ pub struct Config {
     pub requirements: Requirements,
     /// Settings of one rule or one group, by its ID.
     pub rules: BTreeMap<String, RuleConfig>,
+    /// The rule IDs or groups of `--only`. Empty means every rule.
+    #[serde(skip)]
+    pub only: Vec<String>,
 }
 
 /// The settings of a rule. Each rule reads its own path keys from `options`.
@@ -349,7 +352,14 @@ impl Config {
         });
         let group = rule.split('/').next().unwrap_or(rule);
         let adopted = self.rules.contains_key(rule) || self.rules.contains_key(group);
-        !disabled && (adopted || !OPT_IN.contains(&rule))
+        let selected = self.only.is_empty()
+            || self.only.iter().any(|o| {
+                rule == o
+                    || rule
+                        .strip_prefix(o.as_str())
+                        .is_some_and(|rest| rest.starts_with('/'))
+            });
+        selected && !disabled && (adopted || !OPT_IN.contains(&rule))
     }
 }
 

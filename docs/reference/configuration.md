@@ -81,4 +81,6 @@ A generator writes nothing until its first key is set: `rules-path`, `output`, `
 
 These rules run only when a `[rules]` table adopts them, for the rule or for its group: `image/floating-tag`, `image/unpinned-action`, `script/log-vocabulary`, `docs/headcount`, `docs/stack-table`, `docs/principles`, `project/identity`, `service/node-scope`, `service/contract`, `helm/app-version`, `sql/pii-tag`, `api/audience`, `api/prefixes`, `go/call-args`, `go/activity-register`, `go/service-deps`, `money/spec`, `money/no-float`, `money/typescript`, and `kube/resource-governance`. Their input exists in most repositories.
 
+`tabrules check --only money,go/call-args` runs only those rule IDs or groups. An opt-in rule still needs its `[rules]` table.
+
 A line opts out of every rule with `tabrules:allow`, in an HTML comment in Markdown or in a comment in code.

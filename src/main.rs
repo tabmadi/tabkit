@@ -35,6 +35,9 @@ enum Command {
         /// A config file other than `<root>/.config/tabrules.toml`.
         #[arg(long)]
         config: Option<PathBuf>,
+        /// Run only these rule IDs or groups. The flag repeats, and it takes a comma-separated list.
+        #[arg(long, value_delimiter = ',')]
+        only: Vec<String>,
     },
     /// Print every rule ID and what it enforces.
     Rules,
@@ -119,7 +122,7 @@ fn main() -> ExitCode {
             config,
             ..
         } => exit(generate(&root, config.as_deref(), &names, check)),
-        Command::Check { root, config } => exit(self::check(&root, config.as_deref())),
+        Command::Check { root, config, only } => exit(self::check(&root, config.as_deref(), only)),
     }
 }
 
@@ -191,9 +194,11 @@ fn generate(
 }
 
 /// Prints the findings, and returns whether the repository passed.
-fn check(root: &Path, config: Option<&Path>) -> anyhow::Result<bool> {
-    let cfg = config::Config::load(root, config)?;
+fn check(root: &Path, config: Option<&Path>, only: Vec<String>) -> anyhow::Result<bool> {
+    let mut cfg = config::Config::load(root, config)?;
     rules::validate(&cfg)?;
+    rules::validate_names(&only)?;
+    cfg.only = only;
     let repo = repo::Repo::open(root)?;
     let found = rules::run(&repo, &cfg)?;
     if found.is_empty() {
