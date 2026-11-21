@@ -38,6 +38,15 @@ enum Command {
     },
     /// Print every rule ID and what it enforces.
     Rules,
+    /// Apply the safe fixes of the rules that have one.
+    Fix {
+        /// The repository root.
+        #[arg(default_value = ".")]
+        root: PathBuf,
+        /// A config file other than `<root>/.config/tabrules.toml`.
+        #[arg(long)]
+        config: Option<PathBuf>,
+    },
     /// Print the JSON manifest of what the diff against a base ref touches.
     Affected {
         /// The git ref to diff against, through the merge base.
@@ -83,6 +92,7 @@ fn main() -> ExitCode {
             }
             ExitCode::SUCCESS
         }
+        Command::Fix { root, config } => exit(fix(&root, config.as_deref())),
         Command::Affected {
             base,
             all,
@@ -122,6 +132,20 @@ fn exit(result: anyhow::Result<bool>) -> ExitCode {
             ExitCode::from(2)
         }
     }
+}
+
+/// Applies the fix of `go/call-args` when a `[rules]` table adopts the rule.
+fn fix(root: &Path, config: Option<&Path>) -> anyhow::Result<bool> {
+    let cfg = config::Config::load(root, config)?;
+    rules::validate(&cfg)?;
+    let repo = repo::Repo::open(root)?;
+    let changed = if cfg.enabled("go/call-args") {
+        rules::golang::fix_call_args(&repo, &cfg)?
+    } else {
+        0
+    };
+    println!("✓ {changed} files fixed");
+    Ok(true)
 }
 
 fn print_affected(

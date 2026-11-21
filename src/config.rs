@@ -24,6 +24,12 @@ pub const OPT_IN: &[&str] = &[
     "sql/pii-tag",
     "api/audience",
     "api/prefixes",
+    "go/call-args",
+    "go/activity-register",
+    "go/service-deps",
+    "money/spec",
+    "money/no-float",
+    "money/typescript",
 ];
 
 #[derive(Debug, Default, Deserialize)]

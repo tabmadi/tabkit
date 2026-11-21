@@ -7,7 +7,9 @@ mod comment;
 mod docs;
 mod drift;
 mod frontend;
+pub mod golang;
 mod messages;
+mod money;
 mod pins;
 mod platform;
 mod prose;
@@ -285,6 +287,30 @@ pub const RULES: &[(&str, &str)] = &[
     ),
     ("service/node-scope", "npm stays inside the Node workspace"),
     (
+        "go/call-args",
+        "A call has its arguments on one line, or one on each line",
+    ),
+    (
+        "go/activity-register",
+        "A worker registers every activity that its workflows name",
+    ),
+    (
+        "go/service-deps",
+        "A service entrypoint declares what its code uses",
+    ),
+    (
+        "money/spec",
+        "A monetary property of a spec is the shared money component",
+    ),
+    (
+        "money/no-float",
+        "A monetary Go value is never a float or minor units",
+    ),
+    (
+        "money/typescript",
+        "A monetary TypeScript value is never a number",
+    ),
+    (
         "comment/workaround",
         "A workaround names the pin it matches or a recent check date, and a retest",
     ),
@@ -384,6 +410,8 @@ pub fn run(repo: &Repo, cfg: &Config) -> Result<Vec<Finding>> {
     found.extend(frontend::check(&ctx)?);
     found.extend(platform::check(&ctx)?);
     found.extend(services::check(&ctx)?);
+    found.extend(golang::check(&ctx)?);
+    found.extend(money::check(&ctx)?);
     found.retain(|f| cfg.enabled(f.rule) && !allowed(&ctx, f));
     for f in &mut found {
         f.cite = cfg.cite(f.rule).map(str::to_owned);

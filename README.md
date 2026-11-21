@@ -19,13 +19,14 @@ tabrules has one maintainer. It is free to use under the Apache License 2.0, and
 | `frontend` | Message catalogues agree, classes are direction-neutral, tokens meet WCAG contrast, and fixtures are typed against an SDK |
 | `sql`, `alert`, `api`, `edge`, `naming` | Personal-data tags, alert severities, API audience and prefixes, edge access rules, and resource names |
 | `helm`, `gitops`, `service`, `project` | Chart versions, environment overlays, the artifacts of each service, and the identity of a copied project |
+| `go`, `money` | Go call layout, Temporal activity registration, declared service dependencies, and the money type in specs, Go, and TypeScript |
 | `workflow` | A workflow step calls a `just` recipe and holds no pipeline logic |
 | `image` | An image reference or a workflow action does not float |
 | `script` | A script prints status through its log library |
 | `version` | `flake.nix` and `go.mod` or `pyproject.toml` name the same version line |
 | `just` | Every public recipe has a doc comment |
 
-`comment/workaround` checks that a workaround names its pin or a recent check date. Each rule acts only when its input exists. `tabrules rules` lists every rule ID, and `tabrules gen --list` lists every generator. `tabrules affected` prints the services, apps, and libraries that a diff touches, as JSON. Comments are read in Go, TypeScript, JavaScript, Rust, Python, GDScript, shell, TOML, YAML, and SQL.
+`comment/workaround` checks that a workaround names its pin or a recent check date. Each rule acts only when its input exists. `tabrules rules` lists every rule ID, and `tabrules gen --list` lists every generator. `tabrules fix` applies the safe fixes. `tabrules affected` prints the services, apps, and libraries that a diff touches, as JSON. Comments are read in Go, TypeScript, JavaScript, Rust, Python, GDScript, shell, TOML, YAML, and SQL.
 
 ## Getting started
 
