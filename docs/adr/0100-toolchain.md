@@ -107,8 +107,8 @@ Every check is a derivation under `checks` in `flake.nix`. `nix flake check` bui
 
 | When | What runs |
 | --- | --- |
-| Commit | The `pre-commit` hook runs the fast checks on the staged files. The `commit-msg` hook runs `cog verify` |
-| Push | The `pre-push` hook runs `cog check` on the new commits, and `just ci` |
+| Commit | The `pre-commit` hook runs the fast checks on the staged files. The `commit-msg` hook runs `cog verify` and rejects a message with a body |
+| Push | The `pre-push` hook runs `cog check` on the new commits, rejects a commit with a body, and runs `just ci` |
 | CI | The workflow runs `just ci` inside `nix develop`, on every push to `master` and on every pull request |
 
 Each hook calls its tool by its Nix store path, so it works in any terminal, inside the dev shell or not. Entering the dev shell installs the hooks.

@@ -24,6 +24,7 @@ in
       # The configs in .config/ that a tool finds only through an environment variable or a flag.
       configEnv.GITLEAKS_CONFIG = ".config/gitleaks.toml";
       cog = "${pkgs.cocogitto}/bin/cog --config .config/cog.toml";
+      git = "${pkgs.gitMinimal}/bin/git";
 
       # dprint takes its config and plugins only as flags after the subcommand, so the wrapper adds both.
       dprint =
@@ -100,20 +101,39 @@ in
           };
           commit-message = {
             enable = true;
-            name = "cog verify";
-            entry = "${cog} verify --file";
+            name = "cog verify, title only";
+            # `git commit --verbose` puts an uncommented diff after the scissors line.
+            entry = "${pkgs.writeShellScript "commit-title-only" ''
+              ${cog} verify --file "$1" || exit 1
+              body=$(${pkgs.gnused}/bin/sed '/^. -* >8 -*$/,$d' "$1" | ${git} stripspace --strip-comments | ${pkgs.coreutils}/bin/tail -n +2)
+              if [ -n "$body" ]; then
+                echo "A commit message is a title only, with no body." >&2
+                exit 1
+              fi
+            ''}";
             stages = [ "commit-msg" ];
           };
           # Only the commits that this push adds. Older history can predate the convention.
           # Before the first push, origin/master does not exist, so every commit is checked.
           commit-range = {
             enable = true;
-            name = "cog check";
+            name = "cog check, title only";
             entry = "${pkgs.writeShellScript "cog-check-range" ''
-              if ${pkgs.gitMinimal}/bin/git rev-parse --quiet --verify origin/master > /dev/null; then
-                exec ${cog} check origin/master..HEAD
+              if ${git} rev-parse --quiet --verify origin/master > /dev/null; then
+                range=origin/master..HEAD
+                ${cog} check "$range" || exit 1
+              else
+                range=HEAD
+                ${cog} check || exit 1
               fi
-              exec ${cog} check
+              status=0
+              for commit in $(${git} rev-list "$range"); do
+                if [ -n "$(${git} log -1 --format=%b "$commit")" ]; then
+                  echo "Commit $commit has a body. A commit message is a title only." >&2
+                  status=1
+                fi
+              done
+              exit "$status"
             ''}";
             stages = [ "pre-push" ];
             pass_filenames = false;
