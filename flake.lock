@@ -515,16 +515,16 @@
         ]
       },
       "locked": {
-        "lastModified": 1795231977,
-        "narHash": "sha256-mJjeeYY9V2GJZ+GEX1mBOBVRm43+KFEd0scBRciChhA=",
+        "lastModified": 1795232649,
+        "narHash": "sha256-QFXawYtyOxYLLf4a+ibW3f/fKmIaRSRBATY0JHEAlkw=",
         "owner": "tabmadi",
         "repo": "tabnix",
-        "rev": "ece8e297e511c04c9372442ac9149c39bcf627ca",
+        "rev": "bff7bbd3f1132c07437d45a1d058421bc90a5a05",
         "type": "github"
       },
       "original": {
         "owner": "tabmadi",
-        "ref": "v0.11.0",
+        "ref": "v0.12.0",
         "repo": "tabnix",
         "type": "github"
       }
@@ -538,16 +538,16 @@
         "tabnix": "tabnix"
       },
       "locked": {
-        "lastModified": 1795232608,
-        "narHash": "sha256-+A8jPCx8Lg3rm0WtXBpn1S2o/ea3/usRD5gX5IIApDw=",
+        "lastModified": 1795233233,
+        "narHash": "sha256-EgjQqPIwrQdMtvTlOAl5VKm5XF4sx8oLxIkoKymGgJU=",
         "owner": "tabmadi",
         "repo": "tabrules",
-        "rev": "4d73cc34389ce5790eb051f21f70d5f4fd794452",
+        "rev": "c62451c7064a35d05cf80360339e9e8017cd20e2",
         "type": "github"
       },
       "original": {
         "owner": "tabmadi",
-        "ref": "v0.6.0",
+        "ref": "v0.7.0",
         "repo": "tabrules",
         "type": "github"
       }
