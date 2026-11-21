@@ -13,7 +13,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     tabrules = {
-      url = "github:tabmadi/tabrules/v0.5.0";
+      url = "github:tabmadi/tabrules/v0.6.0";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     # The bun module of ADR-0400. bun.nix lists every package of bun.lock, so a check installs them without network.
