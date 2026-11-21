@@ -1,4 +1,4 @@
-# The template scope, per ADR-0400: the lint-scope check and the templates output of a template repo.
+# The template scope, per ADR-0400: the lint-scope check and the templates output.
 # A template imports it only from its template/ folder, so a project made from the template never loads it.
 {
   self,
@@ -51,6 +51,12 @@ in
       example = [ "infra" ];
       description = "The top-level folders that the default template leaves out, beside `template/`, such as the folder of a variant.";
     };
+    extraVoice = mkOption {
+      type = types.listOf types.str;
+      default = [ ];
+      example = [ "github\\.com/example" ];
+      description = "More extended regular expressions that lint-scope refuses in `docs` and `AGENTS.md`, such as the name of the source repo.";
+    };
     variants = mkOption {
       type = types.attrsOf (types.submodule variantOptions);
       default = { };
@@ -65,7 +71,20 @@ in
         # The copied files stay true in every copy.
         checks.lint-scope = pkgs.runCommand "lint-scope" { } ''
           cd ${self}
-          voice='github\.com/tabmadi|blueprints|this template|the template|made from this|generated (repo|project)|TPL-[0-9]'
+          voice=${
+            lib.escapeShellArg (
+              lib.concatStringsSep "|" (
+                [
+                  "this template"
+                  "the template"
+                  "made from this"
+                  "generated (repo|project)"
+                  "TPL-[0-9]"
+                ]
+                ++ cfg.extraVoice
+              )
+            )
+          }
           if grep -rniE "$voice" docs AGENTS.md; then
             echo "A project doc speaks as the template or names another repo." >&2
             exit 1

@@ -5,7 +5,7 @@
 
 ## Context
 
-A repo that runs one machine without an orchestrator needs the same parts each time. It needs a hardened server, and guests that each run one part of the app. It needs a firewall between the guests, a way to give each guest its secrets, and a deploy that cannot lock the owner out.
+A repo that runs one machine without an orchestrator needs the same parts each time. It needs a hardened server, and guests that each run one part of the app. It needs a firewall between the guests, a way to give each guest its secrets, and a deploy that cannot lock the operator out.
 
 A pilot ran these parts on one dedicated server with a copy of the code in its own repo. It proved each part on the real machine. A deploy with a broken firewall rolled back by itself. A NixOS release upgrade passed only as a deploy for the next boot and a reboot, because a live switch failed. The pilot code names its own services, so no other repo can import it.
 
@@ -41,9 +41,9 @@ A microVM costs more memory than a container, and its memory is fixed at start. 
 
 | Option | 3 Safe deploy | 5 Tested | 6 Small repo code | Verdict |
 | --- | --- | --- | --- | --- |
-| `nixos-rebuild --target-host` | No. A broken firewall locks the owner out | Yes | Yes | Rejected |
+| `nixos-rebuild --target-host` | No. A broken firewall locks the operator out | Yes | Yes | Rejected |
 | Colmena | No. Its docs name no rollback when the connection is lost | Yes | Yes. It suits a fleet | Rejected. Driver 3 fails |
-| comin, which pulls from git on the machine | Partly. The owner reverts a commit, and the machine must still reach git | Yes | Yes | Rejected. A lockout needs the console |
+| comin, which pulls from git on the machine | Partly. The operator reverts a commit, and the machine must still reach git | Yes | Yes | Rejected. A lockout needs the console |
 | **deploy-rs** | **Yes. Magic rollback waits for a new SSH connection, and rolls back without one** | **Yes. Its checks validate each node, and its own nixosTests cover the deploy** | **Yes** | **Chosen** |
 
 Sources:

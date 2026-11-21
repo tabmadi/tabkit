@@ -1,7 +1,7 @@
 # ADR-0600: Binary cache
 
 - **Status:** Accepted
-- **Decides:** The owner's repos share one binary cache on niks3 and S3, CI pushes with OIDC, and a repo without the variables runs as before.
+- **Decides:** A repo with two variables uses a binary cache on niks3 and S3, CI pushes with OIDC, and other repos run as before.
 
 ## Context
 
@@ -13,10 +13,10 @@ The drivers:
 
 1. **Removes the cost.** A runner downloads each path that an earlier job built, and builds nothing twice.
 2. **Serves workstations too.** One cache serves CI and each engineer.
-3. **No secret in a project or a fork.** Reads are public, and only the default branch of the owner writes.
+3. **No secret in a project or a fork.** Reads are public, and only the default branch of a listed GitHub account writes.
 4. **Fits the size.** It holds several GB for each repo, with garbage collection.
 5. **Cost.**
-6. **Owner control.** The owner runs it, and a build still works without it.
+6. **Operator control.** The operator runs it, and a build still works without it.
 7. **Operations.** What a person must run.
 
 | Option | 1 Removes cost | 2 Workstations | 3 No secret | 4 Size | 5 Cost | 6 Control | 7 Operations | Verdict |
@@ -25,9 +25,9 @@ The drivers:
 | Magic Nix Cache, single paths in the Actions cache | Yes | No | Yes | 10 GB and seven days, shared with every other cache | Free | GitHub and Determinate | None | Rejected on driver 2. Its own vendor names deep limitations |
 | FlakeHub Cache | Yes | Yes, with a login | No. Each project sets up FlakeHub | Yes | Paid | Determinate | None | Rejected on drivers 3 and 5 |
 | garnix | Yes | Yes | Yes | Yes | Free to 1,500 minutes a month | garnix | None | Rejected. It replaces the CI of GitHub, and the gate is `just ci` in a workflow |
-| An S3 bucket with `nix copy` | Yes | Yes | No. CI needs write keys as a secret | No garbage collection | Small | Owner | Small | Rejected on drivers 3 and 4 |
-| Cachix | Yes | Yes | A push token on the default branch only | No for every repo. The free plan holds 5 GB | Free to 5 GB | Cachix | None | The next candidate, if the owner runs no server |
-| **niks3 on S3** | **Yes** | **Yes** | **Yes. CI pushes with the OIDC token of GitHub Actions** | **Yes, with garbage collection** | **One bucket and one small server** | **Owner** | **One service** | **Chosen** |
+| An S3 bucket with `nix copy` | Yes | Yes | No. CI needs write keys as a secret | No garbage collection | Small | Operator | Small | Rejected on drivers 3 and 4 |
+| Cachix | Yes | Yes | A push token on the default branch only | No for every repo. The free plan holds 5 GB | Free to 5 GB | Cachix | None | The next candidate, if the operator runs no server |
+| **niks3 on S3** | **Yes** | **Yes** | **Yes. CI pushes with the OIDC token of GitHub Actions** | **Yes, with garbage collection** | **One bucket and one small server** | **Operator** | **One service** | **Chosen** |
 
 Sources:
 
@@ -47,7 +47,7 @@ Sources:
 | --- | --- |
 | `domain` | The host name that clients read from and CI pushes to |
 | `signingKeyFile` | The key that signs each path, at run time outside the Nix store |
-| `githubOwners` and `branches` | The owners and the refs whose workflows may push |
+| `githubOwners` and `branches` | The GitHub accounts and the refs whose workflows may push |
 | `oidc` | Whether CI pushes with OIDC. niks3 then reads the OIDC discovery of GitHub at each start |
 | `apiTokenFile` | A token for a push from outside CI, such as a workstation |
 | `keepFor` | How long garbage collection keeps a closure |
@@ -60,7 +60,7 @@ Sources:
 
 **The push is `nix-cache-push`, in the dev shell of every repo.** After `just ci` on the default branch, it pushes only the paths that the job built. A path from a cache is never pushed again. Without `NIX_CACHE_URL` or an OIDC token it does nothing. When the cache does not answer, it warns and exits with success, so a cache outage never fails a gate.
 
-**A repo turns the cache on with two repository variables.** `NIX_CACHE_URL` and `NIX_CACHE_PUBLIC_KEY` add the cache as a substituter in CI. Without them, both settings are empty. A project made from a template has no variables, so it never trusts the cache of the owner by default.
+**A repo turns the cache on with two repository variables.** `NIX_CACHE_URL` and `NIX_CACHE_PUBLIC_KEY` add the cache as a substituter in CI. Without them, both settings are empty. A repo without the variables never trusts a cache by default.
 
 **The nixosTest `nix-cache` proves each refusal.** A push without the token is refused. A client that trusts the key fetches a pushed path and builds nothing. A client that does not trust the key refuses the path. The mirror serves a path of its upstream, signed by its own key. The test uses input-addressed paths: a content-addressed path proves itself, so it passes without a signature.
 
@@ -74,8 +74,8 @@ A workstation reads the cache only when its `nix.conf` lists the URL and the pub
 
 ## Rules
 
-- A repo of the owner turns the cache on with the variables `NIX_CACHE_URL` and `NIX_CACHE_PUBLIC_KEY`, never with a value in a committed file.
-- Only the default branch of a listed owner pushes, with the OIDC token of the job.
+- A repo turns the cache on with the variables `NIX_CACHE_URL` and `NIX_CACHE_PUBLIC_KEY`, never with a value in a committed file.
+- Only the default branch of a listed GitHub account pushes, with the OIDC token of the job.
 - `nix-cache-push` never fails a gate.
 - A key or a token of the cache is a path at run time, outside the Nix store, and the module asserts it.
 - The nixosTest `nix-cache` runs in CI. `(CI: ci)`

@@ -47,6 +47,7 @@ Sources:
 | `tabnix.template.description` | The one-line description that `nix flake show` prints |
 | `tabnix.template.welcomeText` | The first steps that `nix flake new -t` prints |
 | `tabnix.template.exclude` | The top-level folders that the default template leaves out, beside `template/` |
+| `tabnix.template.extraVoice` | More patterns that `lint-scope` refuses in `docs` and `AGENTS.md`, such as the name of the source repo |
 | `tabnix.template.variants.<name>` | One more template output, with its own welcome text and its own `exclude` list |
 
 A variant serves a template with a mode that adds folders, such as a host for a self-hosted mode. The default leaves the folders out, and the variant keeps them.

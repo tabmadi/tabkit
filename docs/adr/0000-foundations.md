@@ -1,17 +1,17 @@
 # ADR-0000: Foundations
 
 - **Status:** Accepted
-- **Decides:** tabnix is the shared Nix toolchain of one owner's repos, it ships as a tagged flake, and every decision is an ADR.
+- **Decides:** tabnix is a Nix toolchain with opinionated defaults, it ships as a tagged flake, and every decision is an ADR.
 
 ## Context
 
-The owner's repos use one toolchain shape. Each repo held its own copy of the same Nix code: the dprint wrapper, the check helper, the git hooks, and the shared checks. Copied code drifts, and a fix in one copy never reaches the others.
+A group of repos with one toolchain shape needs the same Nix code in each repo: the dprint wrapper, the check helper, the git hooks, and the shared checks. Copied code drifts, and a fix in one copy never reaches the others.
 
 ## Decision
 
 tabnix holds the Nix code that every repo shares, per [ADR-0200](0200-module.md). It also ships opt-in NixOS modules for the machines that a repo runs, per [ADR-0300](0300-nixos-modules.md). A repo imports it and adds only its language tools. The docs and the configs stay in each repo, because a reader needs them in place.
 
-**It serves its owner.** The defaults are the owner's opinion. The code is public under the Apache License 2.0, and it makes no promise of support or compatibility.
+**It is opinionated.** A default is a decision. The code is public under the Apache License 2.0. It has one maintainer and makes no promise of support or compatibility.
 
 **Every version is 0.y.z with a plain tag.** A new or stricter shared check bumps the minor version, and a fix bumps the patch version. A repo pins a tag in its flake input, and its gate decides when to move.
 

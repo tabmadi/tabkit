@@ -1,8 +1,8 @@
 # tabnix
 
-The shared Nix toolchain of one owner's repos, as a [flake-parts](https://flake.parts) module. A repo imports it and adds only its language tools.
+A Nix toolchain with opinionated defaults, as a [flake-parts](https://flake.parts) module. A repo imports it and adds only its language tools.
 
-tabnix serves its owner. It is free to use under the Apache License 2.0, but it makes no promise of support or compatibility. Every version is 0.y.z, and any release may break your gate.
+tabnix has one maintainer. It is free to use under the Apache License 2.0, and it makes no promise of support or compatibility. Every version is 0.y.z, and any release may break your gate.
 
 ## What it does
 
@@ -13,7 +13,7 @@ tabnix serves its owner. It is free to use under the Apache License 2.0, but it 
 | Checks | `lint-prose`, `lint-md`, `lint-secrets`, `lint-data`, `lint-nix`, and `lint-just` |
 | `formatter` | nixfmt |
 | `systems` | Linux, on x86-64 and ARM. Linux is the one supported platform |
-| Opt-in flake modules | `template`, for a template repo, `bun`, for a repo on Bun, and `deploy`, for a repo that deploys its own machines. Each one has a check |
+| Opt-in flake modules | `template`, for the `templates` output and the `lint-scope` check, `bun`, for a repo on Bun, and `deploy`, for a repo that deploys its own machines. Each one has a check |
 | NixOS modules | `server`, `microvm-host`, `mtls-gate`, and `nix-cache`, for the machines that a repo runs. Each one has a nixosTest |
 | Binary cache | `nix-cache-push` in the dev shell, which `just cache-push` runs after the CI gate. The variables `NIX_CACHE_URL` and `NIX_CACHE_PUBLIC_KEY` of a repo turn it on |
 
@@ -67,7 +67,7 @@ tabnix serves its owner. It is free to use under the Apache License 2.0, but it 
 
 A repo imports one of these beside the default module only when it has the part. [ADR-0400](docs/adr/0400-opt-in-flake-modules.md) lists the options of each module.
 
-`template` adds the `lint-scope` check and the `templates` output to a template repo. The template imports it from its `template/` folder, so a project made from it never loads it:
+`template` adds the `templates` output and the `lint-scope` check. A repo imports it from its `template/` folder, so a copy of the repo never loads it:
 
 ```nix
 # template/scope.nix

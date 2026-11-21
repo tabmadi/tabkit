@@ -1,4 +1,4 @@
-# The binary cache of the owner's repos, per ADR-0600. niks3 stores the paths that CI builds in an S3 bucket, and CI
+# A binary cache for the repos that set its variables, per ADR-0600. niks3 stores the paths that CI builds in an S3 bucket, and CI
 # pushes with the OIDC token of GitHub Actions, so no secret lives in a workflow. ncps mirrors the public cache.
 localInputs:
 {
@@ -55,7 +55,7 @@ in
     githubOwners = mkOption {
       type = types.nonEmptyListOf types.str;
       example = [ "tabmadi" ];
-      description = "The GitHub owners whose workflows may push, through the OIDC token of GitHub Actions.";
+      description = "The GitHub accounts whose workflows may push, through the OIDC token of GitHub Actions.";
     };
     branches = mkOption {
       type = types.listOf types.str;

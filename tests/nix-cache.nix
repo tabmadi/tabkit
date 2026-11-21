@@ -50,7 +50,7 @@ pkgs.testers.runNixOSTest {
           acme = false;
           # The test VMs have no internet, so the OIDC discovery of GitHub is out of reach. The pushes use the token.
           oidc = false;
-          githubOwners = [ "test-owner" ];
+          githubOwners = [ "example" ];
           signingKeyFile = "/run/test/cache.key";
           apiTokenFile = "/run/test/token";
           s3 = {

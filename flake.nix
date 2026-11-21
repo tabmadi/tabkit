@@ -1,6 +1,6 @@
 # tabnix exports the shared toolchain as a flake-parts module, and checks itself with it, per ADR-0200.
 {
-  description = "The shared Nix toolchain of the owner's repos: the dev shell, the git hooks, and the checks";
+  description = "A Nix toolchain with opinionated defaults: the dev shell, the git hooks, and the checks";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
