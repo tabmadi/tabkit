@@ -1,0 +1,11 @@
+limitRanges:
+  platform:
+    enabled: true
+    minCPU: 1m
+    maxMemory: 1Gi
+resourceQuotas:
+  platform:
+    enabled: true
+    requestsCPU: 1
+    requestsMemory: 1Gi
+    limitsMemory: 1Gi

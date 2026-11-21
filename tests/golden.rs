@@ -13,9 +13,19 @@ fn fixtures() {
         if !root.is_dir() {
             continue;
         }
+        // A fixture can name its rules in `<name>.args`. The stubs stand in for Helm and Go.
+        let args = std::fs::read_to_string(root.with_extension("args")).unwrap_or_default();
+        let stubs = Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/stubs");
+        let path = format!(
+            "{}:{}",
+            stubs.display(),
+            std::env::var("PATH").unwrap_or_default()
+        );
         let out = Command::new(env!("CARGO_BIN_EXE_tabrules"))
             .arg("check")
             .arg(&root)
+            .args(args.split_whitespace())
+            .env("PATH", path)
             .output()
             .expect("tabrules runs");
         let got = format!(

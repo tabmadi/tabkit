@@ -1,0 +1,1 @@
+{ "workspaces": ["libs/one", "libs/glob/*", "test/e2e"] }

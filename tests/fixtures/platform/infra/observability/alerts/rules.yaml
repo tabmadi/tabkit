@@ -1,0 +1,9 @@
+groups:
+  - name: g
+    rules:
+      - alert: NoSeverity
+        expr: up
+      - alert: BadSeverity
+        expr: up
+        labels:
+          severity: critical

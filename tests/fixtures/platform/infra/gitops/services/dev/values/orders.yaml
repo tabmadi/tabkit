@@ -1,0 +1,7 @@
+ingress: { enabled: true, resources: [orders, shared] }
+networkPolicy:
+  allowFrom: [caller]
+  allowFromRoutes:
+    - name: caller
+      routes:
+        - { method: GET, path: /missing }

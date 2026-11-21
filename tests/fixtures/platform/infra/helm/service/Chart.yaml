@@ -1,0 +1,4 @@
+name: service
+appVersion: 1.0.0
+annotations:
+  app-version-from: none

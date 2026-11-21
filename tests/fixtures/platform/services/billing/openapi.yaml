@@ -1,0 +1,4 @@
+info: { x-audience: cluster }
+paths:
+  /billing:
+    get: { operationId: bill }

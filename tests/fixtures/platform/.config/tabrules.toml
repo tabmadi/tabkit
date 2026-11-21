@@ -1,0 +1,29 @@
+[messages]
+dir = "apps/frontend/src/messages"
+
+[docs]
+forbidden-links = [{ from = "docs/**", to = "README.md", reason = "a copy rewrites it" }]
+
+[rules.api]
+
+[rules.money]
+
+[rules."sql/pii-tag"]
+
+[rules."go/call-args"]
+
+[rules."go/activity-register"]
+
+[rules."go/service-deps"]
+
+[rules."service/contract"]
+
+[rules."service/node-scope"]
+
+[rules."helm/app-version"]
+
+[rules."kube/resource-governance"]
+
+[rules."project/identity"]
+footprints = ["old.example"]
+init-script = "scripts/absent.sh"

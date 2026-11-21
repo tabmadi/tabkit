@@ -1,0 +1,3 @@
+cluster:
+  initdb:
+    database: other
