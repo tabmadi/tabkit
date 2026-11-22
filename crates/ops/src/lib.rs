@@ -1,5 +1,7 @@
 //! The platform commands. Each command is a script embedded in the binary, written once to a cache that its content names.
 
+pub mod native;
+
 use std::fs;
 use std::io;
 use std::path::{Path, PathBuf};
@@ -8,11 +10,14 @@ include!(concat!(env!("OUT_DIR"), "/embedded.rs"));
 
 /// The name of each command: a top-level script, without its extension.
 pub fn commands() -> Vec<&'static str> {
-    FILES
+    let mut names: Vec<&'static str> = FILES
         .iter()
         .filter_map(|(name, _)| name.strip_suffix(".sh"))
         .filter(|name| !name.contains('/'))
-        .collect()
+        .chain(native::COMMANDS.iter().copied())
+        .collect();
+    names.sort_unstable();
+    names
 }
 
 /// FNV-1a over the names and contents. It names a cache folder, and it is not a security control.

@@ -504,6 +504,13 @@ dependencies = [
 [[package]]
 name = "tabkit-ops"
 version = "0.17.0"
+dependencies = [
+ "anyhow",
+ "regex",
+ "saphyr",
+ "serde_json",
+ "tabkit-core",
+]
 
 [[package]]
 name = "tabkit-rules"

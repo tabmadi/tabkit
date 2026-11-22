@@ -17,6 +17,10 @@ A platform template holds scripts that create clusters, promote images, sign rel
 
 **A command can move to Rust without a change for a project.** The command name and its arguments are the contract. A port replaces the embedded script behind the same name.
 
+**The layout is the contract.** Every project comes from one template, so the commands read fixed paths and need no config file. The [platform layout](../reference/platform-layout.md) lists them.
+
+**A risky command moves first.** Promotion, registry pruning, the image allow-list, and signing run as Rust with unit tests. They still call `docker`, `helm`, `cosign`, `syft`, `sops`, and `curl` as pinned tools.
+
 **The rules stay read-only.** `crates/rules` does not depend on `crates/ops`, per [ADR-0900](0900-architecture.md).
 
 ## Consequences

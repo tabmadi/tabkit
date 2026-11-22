@@ -3,7 +3,7 @@
 use std::os::unix::process::CommandExt;
 use std::process::{Command, ExitCode};
 
-use tabkit_ops::{cache_root, commands, materialize};
+use tabkit_ops::{cache_root, commands, materialize, native};
 
 fn main() -> ExitCode {
     let mut args = std::env::args().skip(1);
@@ -16,6 +16,16 @@ fn main() -> ExitCode {
             println!("{command}");
         }
         return ExitCode::SUCCESS;
+    }
+    if native::COMMANDS.contains(&name.as_str()) {
+        let rest: Vec<String> = args.collect();
+        return match native::run(&name, &rest) {
+            Ok(()) => ExitCode::SUCCESS,
+            Err(e) => {
+                eprintln!("✗ {e:#}");
+                ExitCode::from(1)
+            }
+        };
     }
     let dir = match materialize(&cache_root()) {
         Ok(dir) => dir,
