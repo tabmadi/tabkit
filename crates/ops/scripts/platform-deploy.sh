@@ -20,7 +20,7 @@ h() { helm --kube-context "$(cluster_ctx)" "$@"; }
 if [ "$CHART" = "lowdefy" ]; then
   REG="registry.localhost:5000"
   step "regenerating admin pages and rebuilding the admin image ${REG}/admin:local"
-  bash "$OPS/gen-admin.sh"
+  tabkit-ops gen-admin
   docker build -t "${REG}/admin:local" -f apps/admin/Dockerfile apps/admin
   docker push "${REG}/admin:local"
   kind load docker-image "${REG}/admin:local" --name "$(cluster_name)" >/dev/null

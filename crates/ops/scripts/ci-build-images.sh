@@ -82,7 +82,7 @@ services)
 apps)
   while read -r -u 3 app; do
     [ -n "$app" ] || continue
-    context="$(bash "$OPS/ci-build-context.sh" "$app" | sed -n 's/^context=//p')"
+    context="$(tabkit-ops ci-build-context "$app" | sed -n 's/^context=//p')"
     start "$app" "$context" "apps/${app}/Dockerfile" --build-arg "SERVICE_VERSION=${GIT_SHA}" </dev/null
   done 3< <(printf '%s' "$items" | jq -r '.[]')
   ;;
