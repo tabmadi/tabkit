@@ -1,13 +1,16 @@
 //! The commands that moved from shell to Rust. Each one keeps its name, arguments, environment, and output.
 
 pub mod allowlist;
+pub mod ci;
 pub mod exec;
 pub mod files;
+pub mod forge;
 pub mod generate;
 pub mod lint;
 pub mod project;
 pub mod promote;
 pub mod prune;
+pub mod release;
 pub mod sign;
 pub mod values;
 
@@ -15,20 +18,35 @@ use anyhow::{Context, Result, bail};
 
 /// The commands that this module runs in place of an embedded script.
 pub const COMMANDS: &[&str] = &[
+    "act-local",
+    "ci-affected-adversarial",
+    "ci-affected-matrix",
     "ci-build-context",
+    "ci-build-images",
+    "ci-design-preview",
+    "ci-e2e-gate",
     "ci-gen",
+    "ci-lighthouse-gate",
+    "ci-nightly-gate",
     "ci-prune-registry",
+    "ci-push-promotion",
     "ci-release-info",
+    "ci-release-pr",
+    "ci-release-publish",
+    "ci-renovate",
     "ci-sign",
     "db-migrate",
+    "dns",
     "e2e",
     "env-ensure",
     "format-shell",
+    "frontend-sourcemaps",
     "gen-admin",
     "gen-image-allowlist",
     "gen-openapi",
     "gen-openapi-public",
     "gen-sqlc",
+    "image-digest",
     "lint-api-breaking",
     "lint-etcd-addresses",
     "lint-openapi",
@@ -40,6 +58,9 @@ pub const COMMANDS: &[&str] = &[
     "perf-rederive",
     "promote-dev-staging",
     "promote-prod",
+    "promote-verify",
+    "release",
+    "scan",
     "test-alerts",
 ];
 
@@ -51,6 +72,24 @@ pub fn run(name: &str, args: &[String]) -> Result<()> {
     }
     enter_root()?;
     match name {
+        "act-local" => release::act_local(args),
+        "ci-affected-adversarial" => ci::affected_adversarial(),
+        "ci-affected-matrix" => ci::affected_matrix(),
+        "ci-build-images" => ci::build_images(args),
+        "ci-design-preview" => ci::design_preview(args),
+        "ci-e2e-gate" => ci::e2e_gate(),
+        "ci-lighthouse-gate" => ci::lighthouse_gate(),
+        "ci-nightly-gate" => ci::nightly_gate(),
+        "ci-push-promotion" => ci::push_promotion(),
+        "ci-release-pr" => ci::release_pr(),
+        "ci-release-publish" => ci::release_publish(),
+        "ci-renovate" => ci::renovate(),
+        "dns" => release::dns(args),
+        "frontend-sourcemaps" => release::frontend_sourcemaps(args),
+        "image-digest" => ci::image_digest(args),
+        "promote-verify" => ci::promote_verify(),
+        "release" => release::release(),
+        "scan" => release::scan(args),
         "ci-build-context" => project::ci_build_context(args),
         "ci-gen" => generate::ci_gen(),
         "ci-release-info" => project::ci_release_info(),

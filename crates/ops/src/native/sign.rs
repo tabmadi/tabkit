@@ -242,7 +242,7 @@ pub fn run(args: &[String]) -> Result<()> {
 }
 
 /// One value of `stringData`, whose key can hold a dot.
-fn string_data(secret: &str, key: &str) -> Result<String> {
+pub fn string_data(secret: &str, key: &str) -> Result<String> {
     let docs = tabkit_core::yaml::load(secret)?;
     let value = docs.first().and_then(|doc| {
         let data = tabkit_core::yaml::pairs(doc)
@@ -256,6 +256,21 @@ fn string_data(secret: &str, key: &str) -> Result<String> {
         Some(value) if !value.is_empty() => Ok(value),
         _ => bail!("the signing secret has no {key}"),
     }
+}
+
+/// Every key and value of `stringData`.
+pub fn all_string_data(secret: &str) -> Result<Vec<(String, String)>> {
+    use tabkit_core::yaml;
+    let docs = yaml::load(secret)?;
+    let data = docs
+        .first()
+        .and_then(|doc| yaml::pairs(doc).find(|(k, _)| yaml::string(k) == Some("stringData")))
+        .map(|(_, v)| v);
+    Ok(data
+        .into_iter()
+        .flat_map(yaml::pairs)
+        .filter_map(|(k, v)| Some((yaml::text(k)?, yaml::text(v)?)))
+        .collect())
 }
 
 #[cfg(test)]
