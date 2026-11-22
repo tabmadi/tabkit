@@ -609,6 +609,8 @@ impl Cluster {
                 for node in &nodes {
                     exec::output("docker", &["start", node])?;
                 }
+                // During a cold start, the API server can answer Forbidden until its RBAC is loaded.
+                self.wait_for("the API server", 180, || self.kok(&["get", "nodes"]))?;
                 self.k(&[
                     "wait",
                     "--for=condition=Ready",
@@ -1246,7 +1248,8 @@ impl Cluster {
             .map_or_else(|_| "absent".to_string(), |o| o.trim().to_string());
         detail(&format!("registry {REGISTRY}:5000: {state}"));
         self.k(&["get", "nodes"])?;
-        if self.kok(&["get", "ns", "argocd"]) {
+        // The namespaces chart creates `argocd` on every tier, so only the CRD shows that Argo CD runs.
+        if self.kok(&["get", "crd", "applications.argoproj.io"]) {
             self.k(&["-n", "argocd", "get", "applications.argoproj.io", "-o", "custom-columns=APP:.metadata.name,SYNC:.status.sync.status,HEALTH:.status.health.status"])?;
         } else {
             self.h(&["-n", &self.ns, "list", "--short"])?;
