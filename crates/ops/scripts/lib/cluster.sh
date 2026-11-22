@@ -16,12 +16,11 @@ if [ -f "$ROOT/infra/local/proxy.local.env" ]; then
   set +a
 fi
 CLUSTER="${CLUSTER:-platform}"
+# shellcheck disable=SC2034  # the project scripts that source this file read these three.
 NS="${NS:-platform}"
+# shellcheck disable=SC2034
 DOMAIN="${DOMAIN:-dev.localtest.me}"
-KIND_CONFIG="infra/local/kind.yaml"
-REGISTRY="registry.localhost"
-# A path, never a named volume: a forge cache can restore a directory. A warm from nothing is most of the cost of `cluster-up`, per ADR-0205.
-ZOT_DATA="${ZOT_DATA:-${XDG_CACHE_HOME:-$HOME/.cache}/zot/${REGISTRY}}"
+# shellcheck disable=SC2034
 ZOT_IMAGE="ghcr.io/project-zot/zot-linux-amd64:v2.1.23"
 
 # Checked when the file is sourced. The functions run as `$(cluster_ctx)`, where an exit ends only the subshell.
@@ -40,35 +39,8 @@ cluster_name_of() {
   if [ "$1" = full ]; then printf '%s-full' "$CLUSTER"; else printf '%s' "$CLUSTER"; fi
 }
 cluster_name() { cluster_name_of "$TIER"; }
-# A CI runner can run two jobs at once and lives longer than both. There, the registry and the cluster belong to the job that created them.
-# The registry is the first host-level stage. It carries the job's name and acts as the lock.
-ci_job() { printf '%s-%s-%s' "${GITHUB_RUN_ID:-}" "${GITHUB_JOB:-}" "${GITHUB_RUN_ATTEMPT:-}"; }
-ci_owned() { [ -z "${CI:-}" ] || grep -qx "$1" "${RUNNER_TEMP:?}/kind-cluster" 2>/dev/null; }
-registry_job() { docker inspect -f '{{index .Config.Labels "platform.ci-job"}}' "$REGISTRY" 2>/dev/null || true; }
-# This job never replaces, resumes, or moves another job's registry and cluster. It waits for that job to finish.
-ci_wait_for_runner() {
-  local waited=0 held
-  while :; do
-    held="$(registry_job)"
-    { [ -n "$held" ] && [ "$held" != "$(ci_job)" ]; } ||
-      cluster_exists "$(cluster_name_of base)" || cluster_exists "$(cluster_name_of full)" || return 0
-    [ "$waited" -lt 3600 ] || fail "another job has held this runner's registry and edge for an hour"
-    [ "$waited" -gt 0 ] || step "waiting for another job to release this runner's registry and edge"
-    sleep 30
-    waited=$((waited + 30))
-  done
-}
 other_tier() { if [ "$TIER" = full ]; then printf 'base'; else printf 'full'; fi; }
 cluster_exists() { kind get clusters 2>/dev/null | grep -qx "$1"; }
-# A tier-scoped verb that finds nothing reports it and names the tier that is up.
-# The tiers are alternatives, so `no such cluster` usually means the wrong tier was named.
-other_tier_hint() {
-  local other
-  other="$(other_tier)"
-  cluster_exists "$(cluster_name_of "$other")" &&
-    detail "the ${other} tier is up. To use it, run 'just cluster:${1} -- ${other}'"
-  return 0
-}
 cluster_ctx() { printf 'kind-%s' "$(cluster_name)"; }
 
 # True when this cluster's node runs, not only exists. Both tiers can exist at once.
