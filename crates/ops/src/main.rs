@@ -1,7 +1,6 @@
 //! `tabkit-ops <command> [args]`: runs one platform command in the repository of the caller.
 
-use std::os::unix::process::CommandExt;
-use std::process::{Command, ExitCode};
+use std::process::ExitCode;
 
 use tabkit_ops::{cache_root, commands, materialize, native};
 
@@ -27,25 +26,18 @@ fn main() -> ExitCode {
             }
         };
     }
-    let dir = match materialize(&cache_root()) {
-        Ok(dir) => dir,
-        Err(e) => {
-            eprintln!("✗ cannot write the scripts to the cache: {e}");
-            return ExitCode::from(1);
-        }
-    };
     if name == "lib" {
-        println!("{}", dir.join("lib").display());
-        return ExitCode::SUCCESS;
+        return match materialize(&cache_root()) {
+            Ok(dir) => {
+                println!("{}", dir.join("lib").display());
+                ExitCode::SUCCESS
+            }
+            Err(e) => {
+                eprintln!("✗ cannot write the shell library to the cache: {e}");
+                ExitCode::from(1)
+            }
+        };
     }
-    if !commands().contains(&name.as_str()) {
-        eprintln!("✗ no command `{name}`. `tabkit-ops list` prints the commands");
-        return ExitCode::from(2);
-    }
-    let error = Command::new("bash")
-        .arg(dir.join(format!("{name}.sh")))
-        .args(args)
-        .exec();
-    eprintln!("✗ cannot run bash: {error}");
-    ExitCode::from(1)
+    eprintln!("✗ no command `{name}`. `tabkit-ops list` prints the commands");
+    ExitCode::from(2)
 }

@@ -15,15 +15,3 @@
 | `infra/auth/cosign/signing-key.enc.yaml` | The encrypted signing key | `ci-sign` |
 | `scripts/lib/ports.sh` | The registry of local ports | `service-dev`, `svc-apply` |
 | `scripts/identity-seed.sh`, `scripts/dep-apply.sh` | The project's own seed and dependency steps | `cluster`, `service-deploy` |
-
-## Native commands
-
-These commands run as Rust. Every other command runs its embedded script.
-
-| Command | Does |
-| --- | --- |
-| `promote-dev-staging` | Pins dev and staging to the digests of a commit |
-| `promote-prod` | Pins prod to a release commit and labels the images |
-| `ci-prune-registry` | Deletes the tags that nothing can deploy |
-| `gen-image-allowlist` | Writes or checks the allow-list and the warm list |
-| `ci-sign` | Signs an image and attaches its SBOM and provenance |

@@ -1,7 +1,19 @@
 //! The commands that moved from shell to Rust. Each one keeps its name, arguments, environment, and output.
 
+// A command is one ordered procedure of tool calls, and splitting it would only hide the order.
+#![allow(
+    clippy::too_many_lines,
+    clippy::similar_names,
+    clippy::items_after_statements
+)]
+
 pub mod allowlist;
 pub mod ci;
+pub mod cluster;
+pub mod cluster_argo;
+pub mod cluster_images;
+pub mod deploy;
+pub mod devloop;
 pub mod exec;
 pub mod files;
 pub mod forge;
@@ -11,6 +23,7 @@ pub mod lint;
 pub mod loki;
 pub mod project;
 pub mod promote;
+pub mod proxy;
 pub mod prune;
 pub mod release;
 pub mod secrets;
@@ -23,6 +36,9 @@ use anyhow::{Context, Result, bail};
 /// The commands that this module runs in place of an embedded script.
 pub const COMMANDS: &[&str] = &[
     "act-local",
+    "argo",
+    "argocd-bootstrap",
+    "auth-token",
     "bootstrap",
     "ci-affected-adversarial",
     "ci-affected-matrix",
@@ -33,6 +49,7 @@ pub const COMMANDS: &[&str] = &[
     "ci-gen",
     "ci-lighthouse-gate",
     "ci-nightly-gate",
+    "ci-preview",
     "ci-prune-registry",
     "ci-push-promotion",
     "ci-release-info",
@@ -40,7 +57,10 @@ pub const COMMANDS: &[&str] = &[
     "ci-release-publish",
     "ci-renovate",
     "ci-sign",
+    "cluster",
     "db-migrate",
+    "dev-forward",
+    "dev-frontend",
     "dns",
     "e2e",
     "env-ensure",
@@ -55,18 +75,25 @@ pub const COMMANDS: &[&str] = &[
     "gen-openapi-public",
     "gen-sqlc",
     "image-digest",
+    "lighthouse-stack",
     "lint-api-breaking",
     "lint-etcd-addresses",
     "lint-openapi",
     "lint-secrets",
     "lint-shell",
     "lint-sql",
+    "mock",
     "new-service",
     "nix-hashes",
+    "ops-grant",
     "perf-rederive",
+    "platform-deploy",
+    "populate-zot",
+    "privacy",
     "promote-dev-staging",
     "promote-prod",
     "promote-verify",
+    "proxy-setup",
     "release",
     "rotate-local-age-key",
     "scan",
@@ -74,7 +101,10 @@ pub const COMMANDS: &[&str] = &[
     "secrets-cosign",
     "secrets-gpg",
     "secrets-updatekeys",
+    "service-deploy",
+    "service-dev",
     "supply-chain-inventory",
+    "svc-apply",
     "test-alerts",
 ];
 
@@ -86,6 +116,29 @@ pub fn run(name: &str, args: &[String]) -> Result<()> {
     }
     enter_root()?;
     match name {
+        "argo" => deploy::argo(args),
+        "argocd-bootstrap" => deploy::argocd_bootstrap(args),
+        "auth-token" => devloop::auth_token(args),
+        "ci-preview" => deploy::ci_preview(args),
+        "cluster" => cluster::run(args),
+        "dev-forward" => devloop::dev_forward(),
+        "dev-frontend" => devloop::dev_frontend(),
+        "lighthouse-stack" => devloop::lighthouse_stack(args),
+        "mock" => devloop::mock(args),
+        "ops-grant" => devloop::ops_grant(args),
+        "platform-deploy" => {
+            let chart = args.first().context("usage: just cluster-add <chart>")?;
+            deploy::platform_deploy(&cluster::Cluster::detect()?, chart)
+        }
+        "populate-zot" => deploy::populate_zot(&cluster::Cluster::detect()?),
+        "privacy" => devloop::privacy(args),
+        "proxy-setup" => proxy::run(args),
+        "service-deploy" => {
+            let service = args.first().context("usage: just cluster-add <svc>")?;
+            deploy::service_deploy(&cluster::Cluster::detect()?, service, &mut Vec::new())
+        }
+        "service-dev" => deploy::service_dev(args),
+        "svc-apply" => deploy::svc_apply(args),
         "bootstrap" => secrets::bootstrap(),
         "forge-apply" => forgeops::apply(),
         "forge-ci-user" => forgeops::ci_user(),

@@ -151,7 +151,7 @@
                   }
                   ''
                     cd ${./crates/ops/scripts}
-                    shellcheck --external-sources --source-path=SCRIPTDIR --exclude=SC1091 -x --severity=warning *.sh lib/*.sh
+                    shellcheck --external-sources --source-path=SCRIPTDIR --exclude=SC1091 -x --severity=warning lib/*.sh
                     shfmt -d -i 2 .
                     touch $out
                   '';

@@ -58,9 +58,6 @@ static CONFIG_IMAGE: LazyLock<Regex> =
 static RAW_IMAGE: LazyLock<Regex> = LazyLock::new(|| {
     Regex::new(r#"(?m)^[ \t-]*image(?:Name)?:[ \t]*["']?([^\s"']+)"#).expect("the pattern compiles")
 });
-static CHART: LazyLock<Regex> = LazyLock::new(|| {
-    Regex::new(r"infra/helm/platform/([a-z0-9-]+)").expect("the pattern compiles")
-});
 
 fn field<'a, 'b>(node: &'a MarkedYaml<'b>, name: &str) -> Option<&'a MarkedYaml<'b>> {
     yaml::pairs(node)
@@ -191,51 +188,6 @@ fn render_refs(local: &BTreeSet<String>, base: &BTreeSet<String>) -> String {
         writeln!(out, "full {image}").expect("a string write");
     }
     out
-}
-
-fn words_after(text: &str, marker: &str) -> Vec<String> {
-    text.lines()
-        .find_map(|line| {
-            line.strip_prefix(marker)?
-                .strip_suffix(')')
-                .map(str::to_string)
-        })
-        .map(|list| list.split_whitespace().map(str::to_string).collect())
-        .unwrap_or_default()
-}
-
-fn stage_body<'a>(library: &'a str, stage: &str) -> Option<&'a str> {
-    let start = library.find(&format!("\nstage_{stage}()"))? + 1;
-    let end = library[start..]
-        .find("\n}")
-        .map_or(library.len(), |offset| start + offset);
-    Some(&library[start..end])
-}
-
-/// The charts that the base tier installs, read from the embedded cluster stages.
-fn base_charts(entry: &str, library: &str) -> Result<BTreeSet<String>> {
-    let stages = words_after(entry, "STAGES_base=(");
-    if stages.is_empty() {
-        bail!("cannot read STAGES_base from the cluster command");
-    }
-    let mut charts = BTreeSet::new();
-    for stage in words_after(entry, "PRELUDE=(").iter().chain(&stages) {
-        if let Some(body) = stage_body(library, stage) {
-            charts.extend(CHART.captures_iter(body).map(|c| c[1].to_string()));
-        }
-    }
-    if charts.is_empty() {
-        bail!("no base-tier charts found. The stage functions changed shape");
-    }
-    Ok(charts)
-}
-
-fn embedded(name: &str) -> Result<String> {
-    let (_, body) = crate::FILES
-        .iter()
-        .find(|(file, _)| *file == name)
-        .with_context(|| format!("{name} is not embedded"))?;
-    Ok(String::from_utf8_lossy(body).into_owned())
 }
 
 fn helm_quiet(args: &[&str]) -> Option<String> {
@@ -457,7 +409,10 @@ fn render_all(base: &BTreeSet<String>) -> Result<Rendered> {
 pub fn run(args: &[String]) -> Result<()> {
     let check = args.first().is_some_and(|a| a == "--check");
     step("rendering every platform chart to collect its images");
-    let base = base_charts(&embedded("cluster.sh")?, &embedded("lib/cluster.sh")?)?;
+    let base: BTreeSet<String> = super::cluster::BASE_CHARTS
+        .iter()
+        .map(|c| (*c).to_string())
+        .collect();
     detail(&format!(
         "base tier installs: {}",
         base.iter().cloned().collect::<Vec<_>>().join(" ")
@@ -577,16 +532,5 @@ data:
         let base: BTreeSet<String> = ["a:1"].map(String::from).into();
         let refs = render_refs(&local, &base);
         assert!(refs.ends_with("base a:1\nfull b:1\n"));
-    }
-
-    #[test]
-    fn reads_the_base_charts_from_the_stages() {
-        let entry = "PRELUDE=(edge)\nSTAGES_base=(postgres)\n";
-        let library = "x\nstage_edge() {\n  helm infra/helm/platform/traefik\n}\nstage_postgres() {\n  helm infra/helm/platform/postgres\n}\nstage_other() {\n  helm infra/helm/platform/grafana\n}\n";
-        let charts = base_charts(entry, library).unwrap();
-        assert_eq!(
-            charts.into_iter().collect::<Vec<_>>(),
-            vec!["postgres", "traefik"]
-        );
     }
 }

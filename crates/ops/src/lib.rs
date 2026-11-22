@@ -1,4 +1,4 @@
-//! The platform commands. Each command is a script embedded in the binary, written once to a cache that its content names.
+//! The platform commands, and a small shell library for the scripts that a project keeps for itself.
 
 pub mod native;
 
@@ -8,16 +8,19 @@ use std::path::{Path, PathBuf};
 
 include!(concat!(env!("OUT_DIR"), "/embedded.rs"));
 
-/// The name of each command: a top-level script, without its extension.
+/// The name of each command.
 pub fn commands() -> Vec<&'static str> {
-    let mut names: Vec<&'static str> = FILES
-        .iter()
-        .filter_map(|(name, _)| name.strip_suffix(".sh"))
-        .filter(|name| !name.contains('/'))
-        .chain(native::COMMANDS.iter().copied())
-        .collect();
-    names.sort_unstable();
-    names
+    native::COMMANDS.to_vec()
+}
+
+/// The pinned image of the local registry. The shell library holds it, so Renovate updates one place.
+pub fn zot_image() -> Option<String> {
+    let (_, body) = FILES.iter().find(|(name, _)| *name == "lib/cluster.sh")?;
+    String::from_utf8_lossy(body).lines().find_map(|line| {
+        line.strip_prefix("ZOT_IMAGE=\"")?
+            .strip_suffix('"')
+            .map(str::to_string)
+    })
 }
 
 /// FNV-1a over the names and contents. It names a cache folder, and it is not a security control.
@@ -77,6 +80,15 @@ mod tests {
         let names = commands();
         assert!(names.contains(&"cluster"));
         assert!(!names.iter().any(|name| name.contains("lib/")));
+    }
+
+    #[test]
+    fn the_registry_image_is_pinned() {
+        assert!(
+            zot_image().is_some_and(
+                |image| image.starts_with("ghcr.io/project-zot/") && image.contains(":v")
+            )
+        );
     }
 
     #[test]
