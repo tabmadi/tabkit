@@ -1,3 +1,0 @@
-README.md:3: construct/intensifier: intensifier `very`: delete it. A claim that needs an intensifier is not established [ADR-0007]
-README.md:3: simple/semicolon: semicolon `n;`: write two sentences, or use a colon [ADR-0042]
-✗ 2 findings in 1 files. `tabrules rules` explains each rule

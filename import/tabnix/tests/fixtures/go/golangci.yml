@@ -1,7 +1,0 @@
-version: "2"
-linters:
-  settings:
-    gocritic:
-      settings:
-        ruleguard:
-          rules: "@tabnix-go-rules@"

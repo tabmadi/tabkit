@@ -1,0 +1,19 @@
+README.md: docs/principles: principle 1 cites `https://example.test/a`, which the anchor in docs/adr/0000-foundations.md does not
+README.md: docs/principles: states principle 7, and docs/adr/0000-foundations.md has no such principle
+README.md:3: docs/headcount: states a headcount, `three engineers`: state the obligations
+README.md:9: docs/stack-table: row `Deploy` presents `Kustomize` as the decision, and ADR-0002 rejects it
+docs/adoption-path.md:6: adr/adoption-components: names `Kong`, which docs/operational-surface.md does not list
+docs/adr/0000-foundations.md: adr/header: the header has no `decides` field
+docs/adr/0000-foundations.md: adr/header: the header has no `status` field
+docs/adr/0000-foundations.md: docs/principles: principle 1 rejects `Helm`, and ADR-0002 chose it
+docs/adr/0000-foundations.md: docs/principles: states principle 2, and README.md does not carry it
+docs/adr/0002-deploy.md: adr/deferral-register: states a deferral with no row in docs/reference/deferral-register.md
+docs/adr/0002-deploy.md: adr/header: the header has no `decides` field
+docs/adr/0002-deploy.md: adr/header: the header has no `status` field
+docs/adr/0002-deploy.md: adr/sections: the last section is not Rules
+docs/adr/README.md: adr/index: ADR-0000 has no row
+docs/adr/README.md: adr/index: ADR-0002 has no row
+docs/reference: docs/single-file-dir: a directory that holds a single file groups nothing
+docs/tool-register.md:7: adr/tool-register: Helm: `Pulumi` is recorded against it but appears nowhere in ADR 0002-deploy
+docs/tool-register.md:7: adr/tool-register: Helm: a Tier 1 row has an empty Runner-up cell
+✗ 18 findings in 7 files. `tabkit rules` explains each rule

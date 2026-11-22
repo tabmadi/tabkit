@@ -1,0 +1,104 @@
+.sops.yaml: naming/resource: `stg` is not an environment. Write env in full: dev, staging, prod, local
+apps/frontend/Dockerfile: service/workspace-copies: `libs/glob/*` matches workspace members but this file never copies libs/glob/
+apps/frontend/Dockerfile: service/workspace-copies: `libs/one` is a workspace member but this file never copies its package.json
+apps/frontend/Dockerfile: service/workspace-copies: `test/e2e` is a workspace member but this file never copies its package.json
+apps/frontend/src/fixtures/loose.ts:1: frontend/fixture: `loose` has no `satisfies <T>`
+apps/frontend/src/messages/de.json: frontend/message-parity: `de.json` is missing `only`, which is in `en.json`
+apps/frontend/src/messages/en.json: frontend/message-parity: `en.json` is missing `other`, which is in `de.json`
+apps/frontend/src/page.ts:1: frontend/logical-property: a physical property does not mirror: use its logical form
+apps/frontend/src/page.ts:2: money/typescript: `price` is a monetary value as a number. Use the money type
+apps/frontend/src/page.ts:3: edge/auth-inline: development-only auth code. The frontend has one auth path
+apps/frontend/src/styles/theme.css: frontend/contrast: dark: --foreground on --background is 1.16:1, below 4.5:1, SC 1.4.3 normal text
+apps/frontend/src/styles/theme.css: frontend/contrast: dark: --foreground on --card is 1.16:1, below 4.5:1, SC 1.4.3 normal text
+apps/frontend/src/styles/theme.css: frontend/contrast: dark: --muted does not resolve to a colour
+apps/frontend/src/styles/theme.css: frontend/contrast: light: --foreground on --background is 1.16:1, below 4.5:1, SC 1.4.3 normal text
+apps/frontend/src/styles/theme.css: frontend/contrast: light: --foreground on --card is 1.16:1, below 4.5:1, SC 1.4.3 normal text
+apps/frontend/src/styles/theme.css: frontend/contrast: light: --muted does not resolve to a colour
+apps/package-lock.json: service/node-scope: an npm lockfile outside test/e2e
+docs/guide/same.md: docs/filename: another document under docs/ is also `same.md`
+docs/guide/same.md:3: docs/forbidden-link: links to `README.md`: a copy rewrites it
+docs/reference/same.md: docs/filename: another document under docs/ is also `same.md`
+infra/auth/kratos/identity-schemas/user.v1.json: edge/auth-inline: the canonical auth file is missing
+infra/auth/kratos/values.yaml: edge/auth-inline: the canonical auth file is missing
+infra/auth/oathkeeper/access-rules.json: edge/api-wildcard: ops-tool: match url `https://x/api/<**>` has a bare wildcard after /api/. List the resources instead: /api/<{a,b,c}>
+infra/auth/oathkeeper/access-rules.json: edge/authorizer: ops-tool: authorizer is `allow`, expected `remote_json`
+infra/auth/oathkeeper/values.yaml: edge/auth-inline: the canonical auth file is missing
+infra/gateway/route.yaml: edge/strip-headers: ordered: strip-identity-headers must come before forward-auth
+infra/gitops/dev-bootstrap: gitops/env-scope: generates env `prod`, but the directory is for `dev`
+infra/gitops/parity-allowlist.txt:1: gitops/parity: `unreasoned.key` carries no reason
+infra/gitops/platform/dev/values.yaml: gitops/parity: `extra` is absent from the local overlay and unlisted in infra/gitops/parity-allowlist.txt
+infra/gitops/platform/stg: naming/resource: `stg` is not an environment. Environments: dev, staging, prod, local
+infra/gitops/services/dev/values/orders.yaml: edge/l7-routes: `GET /missing` is not an x-audience: cluster operation in services/orders/openapi.yaml
+infra/gitops/services/dev/values/orders.yaml: edge/l7-routes: `caller` is in allowFrom and allowFromRoutes. The allow on the whole port hides the routes
+infra/helm/platform/chart-a/Chart.yaml: helm/app-version: appVersion 1.0.0, but arg:apps/frontend/Dockerfile:VERSION is 2.0.0
+infra/helm/platform/chart-b/Chart.yaml: helm/app-version: no app-version-from annotation
+infra/helm/platform/ory/values.yaml:1: edge/auth-inline: auth config is inline. It lives only in the auth directory
+infra/helm/platform/resource-governance/values.yaml: kube/resource-governance: billing/api/app has no memory request, and namespace platform supplies no default
+infra/helm/platform/resource-governance/values.yaml: kube/resource-governance: billing/api/app limits memory=2Gi is ABOVE the platform LimitRange bound of 1Gi. The pod would be rejected
+infra/helm/platform/resource-governance/values.yaml: kube/resource-governance: billing/api/app sets a cpu limit, 1. Add it to `cpu-limit-allow` with a reason, or remove it
+infra/helm/platform/resource-governance/values.yaml: kube/resource-governance: chart-a/api/app has no memory request, and namespace platform supplies no default
+infra/helm/platform/resource-governance/values.yaml: kube/resource-governance: chart-a/api/app limits memory=2Gi is ABOVE the platform LimitRange bound of 1Gi. The pod would be rejected
+infra/helm/platform/resource-governance/values.yaml: kube/resource-governance: chart-a/api/app sets a cpu limit, 1. Add it to `cpu-limit-allow` with a reason, or remove it
+infra/helm/platform/resource-governance/values.yaml: kube/resource-governance: chart-b/api/app has no memory request, and namespace platform supplies no default
+infra/helm/platform/resource-governance/values.yaml: kube/resource-governance: chart-b/api/app limits memory=2Gi is ABOVE the platform LimitRange bound of 1Gi. The pod would be rejected
+infra/helm/platform/resource-governance/values.yaml: kube/resource-governance: chart-b/api/app sets a cpu limit, 1. Add it to `cpu-limit-allow` with a reason, or remove it
+infra/helm/platform/resource-governance/values.yaml: kube/resource-governance: orders/api/app has no memory request, and namespace platform supplies no default
+infra/helm/platform/resource-governance/values.yaml: kube/resource-governance: orders/api/app limits memory=2Gi is ABOVE the platform LimitRange bound of 1Gi. The pod would be rejected
+infra/helm/platform/resource-governance/values.yaml: kube/resource-governance: orders/api/app sets a cpu limit, 1. Add it to `cpu-limit-allow` with a reason, or remove it
+infra/helm/platform/resource-governance/values.yaml: kube/resource-governance: platform: summed limits.memory is 8.00Gi, cap is 1.00Gi. Pods would be rejected
+infra/helm/platform/resource-governance/values.yaml: kube/resource-governance: platform: summed requests.cpu is 8.00 cores, cap is 1.00 cores. Pods would be rejected
+infra/helm/service: edge/strip-headers: route: forward-auth route without strip-identity-headers
+infra/observability/alerts/rules.yaml: alert/severity: no Watchdog rule. Nothing detects a dead alerting pipeline
+infra/observability/alerts/rules.yaml:4: alert/severity: NoSeverity has no severity
+infra/observability/alerts/rules.yaml:6: alert/severity: BadSeverity has severity `critical`, which is not page or ticket
+infra/project.yaml: project/identity: 1 files still carry `old.example`
+infra/talos/inventory/dev/nodes.yml: naming/resource: host `acmeco-dev-db`: `db` is not a role in the role table
+infra/talos/inventory/qa: naming/resource: `qa` is not an environment. Environments: dev, staging, prod
+package.json: service/node-scope: test/e2e is in the Bun workspace. It stays a Node island
+scripts/build.sh:2: helm/dependency-fallback: `helm dependency build` has no `update` fallback
+scripts/lib/ports.sh: service/ports: 8080 is reserved for the local edge. Choose another port
+scripts/lib/ports.sh: service/ports: billing has no cmd/server but registers a local port
+scripts/lib/ports.sh: service/ports: port 8080 is registered to more than one service: orders billing
+services/billing: service/contract: justfile has no build recipe
+services/billing: service/contract: justfile has no generate recipe
+services/billing: service/contract: justfile has no lint recipe
+services/billing: service/contract: justfile has no test recipe
+services/billing: service/contract: justfile has no worker recipe
+services/billing: service/contract: missing .env.example
+services/billing: service/contract: missing Dockerfile
+services/billing: service/contract: missing README.md
+services/billing: service/contract: missing justfile
+services/billing: service/contract: missing requirements.md
+services/billing: service/contract: no `service-isolation-billing` depguard rule in .config/golangci.yml. Nothing stops another service from importing it
+services/billing/openapi.yaml: api/audience: is edge-exposed but every operation is x-audience: cluster
+services/billing/openapi.yaml: api/prefixes: resource `shared` is claimed by billing, orders. One flat /api namespace allows one service for each resource
+services/billing/openapi.yaml: api/prefixes: routes `shared` at the edge but its spec has no /shared path
+services/orders: service/contract: justfile has no build recipe
+services/orders: service/contract: justfile has no generate recipe
+services/orders: service/contract: justfile has no lint recipe
+services/orders: service/contract: justfile has no migrate recipe
+services/orders: service/contract: justfile has no test recipe
+services/orders: service/contract: missing .env.example
+services/orders: service/contract: missing Dockerfile
+services/orders: service/contract: missing README.md
+services/orders: service/contract: missing requirements.md
+services/orders: service/contract: no `service-isolation-orders` depguard rule in .config/golangci.yml. Nothing stops another service from importing it
+services/orders: service/contract: no slo.yaml. A service that answers requests needs an availability and a latency SLI
+services/orders: service/databases: owns a schema but infra/gitops/platform/local/secrets/platform.enc.yaml carries no orders-db Secret
+services/orders: service/databases: owns a schema but infra/helm/platform/network-policies/templates/10-datastores.yaml does not admit it to Postgres
+services/orders: service/databases: ships migrations but no database named `orders` is created in infra/helm/platform/postgres/values.yaml
+services/orders: service/databases: two migrations share version 1, so they cannot apply to a fresh database
+services/orders/cmd/server/main.go:4: go/call-args: call arguments are partly broken across lines: use one line, or one argument on each line
+services/orders/internal/money.go:4: money/no-float: `Price` is monetary and float64. Use the money type
+services/orders/internal/money.go:5: money/no-float: `TotalCents` names minor units. A monetary value is the money type
+services/orders/internal/workflows/flow.go:4: go/activity-register: `Unknown` is executed here but never registered in services/orders/cmd/worker/main.go
+services/orders/justfile: go/service-deps: recipe `server` declares svc-ghost but nothing in the closure uses it
+services/orders/justfile: go/service-deps: recipe `server` uses dep-temporal but does not declare it
+services/orders/justfile: go/service-deps: recipe `worker` uses dep-temporal but does not declare it
+services/orders/justfile: service/ports: the registry says 8080, and this file binds 9999
+services/orders/migrations/1_a.sql: sql/pii-tag: orders:t.email holds personal data by its name and has no pii: tag. Add one, or pii:none if it does not
+services/orders/migrations/1_a.sql: sql/pii-tag: orders:t.note is tagged pii:bogus, which is not a class. Use one of: none, contact, name, identifier, government_id, financial, location, device, special_category, free_text
+services/orders/openapi.yaml: api/prefixes: routes `shared` at the edge but its spec has no /shared path
+services/orders/openapi.yaml:10: money/spec: `price` is a monetary property but is type: number, not $ref: Money
+test/e2e: service/node-scope: missing test/e2e/package.json
+✗ 103 findings in 42 files. `tabkit rules` explains each rule

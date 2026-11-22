@@ -1,0 +1,22 @@
+[package]
+name = "tabkit"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+description = "Opinionated checks, generators, and Nix modules for a repository"
+
+[[bin]]
+name = "tabkit"
+path = "src/main.rs"
+
+[dependencies]
+anyhow.workspace = true
+clap.workspace = true
+tabkit-core.workspace = true
+tabkit-rules.workspace = true
+
+[lints]
+workspace = true

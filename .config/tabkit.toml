@@ -1,0 +1,2 @@
+# tabkit checks itself. The fixtures break the rules on purpose.
+exclude = ["crates/cli/tests/fixtures/**"]

@@ -1,0 +1,11 @@
+.github/workflows/build.yml:6: image/unpinned-action: `uses: actions/checkout@main` floats: pin a version or a SHA [ADR-0111]
+.github/workflows/build.yml:7: workflow/thin: `curl example.test` is logic. Move it into a `just` recipe
+.github/workflows/build.yml:11: workflow/thin: `nix develop --command go test` is logic. Move it into a `just` recipe
+go.mod:3: version/sync: Go line 1.26 differs from 1.27 in `flake.nix`
+justfile:5: just/doc-comment: recipe `bad` has no doc comment
+pyproject.toml:2: version/sync: Python line 3.14 differs from 3.15 in `flake.nix`
+scripts/run.sh:2: comment/workaround: the marker is neither `Workaround for <name> <version> in <path>:` nor `Workaround for <name>, checked <YYYY-MM>:`
+scripts/run.sh:3: comment/workaround: cosign is pinned to another version than 0.0.1 in pins.toml
+scripts/run.sh:4: script/log-vocabulary: bare status output: use the helpers of the log library
+services/api/Dockerfile:1: image/floating-tag: floating tag `:latest`: pin a version or a digest [ADR-0111]
+✗ 10 findings in 6 files. `tabkit rules` explains each rule

@@ -1,0 +1,45 @@
+[workspace]
+members = ["crates/cli", "crates/core", "crates/rules"]
+resolver = "3"
+
+[workspace.package]
+version = "0.16.0"
+edition = "2024"
+license = "Apache-2.0"
+publish = false
+repository = "https://github.com/tabmadi/tabkit"
+rust-version = "1.99"
+
+[workspace.dependencies]
+anyhow = "=1.0.104"
+clap = { version = "=4.6.9", features = ["derive"] }
+globset = "=0.4.21"
+pulldown-cmark = { version = "=0.13.6", default-features = false }
+regex = "=1.13.2"
+saphyr = "0.3.4"
+serde = { version = "=1.0.229", features = ["derive"] }
+serde_json = "=1.0.154"
+tabkit-core = { path = "crates/core" }
+tabkit-rules = { path = "crates/rules" }
+toml = "=1.2.1"
+tree-sitter = "0.27.2"
+tree-sitter-go = "0.25.0"
+
+[workspace.lints.rust]
+unsafe_code = "forbid"
+
+[workspace.lints.clippy]
+pedantic = { level = "warn", priority = -1 }
+module_name_repetitions = "allow"
+# Prose in doc comments names products such as TypeScript, which are not code.
+doc_markdown = "allow"
+# Repository files use lowercase extensions, per the conventions of each ecosystem.
+case_sensitive_file_extension_comparisons = "allow"
+missing_errors_doc = "allow"
+# The library crates are private to this workspace, so a caller is always in this repo.
+must_use_candidate = "allow"
+
+[profile.release]
+lto = true
+codegen-units = 1
+strip = true
