@@ -34,7 +34,7 @@ Every text follows the Simple English profile in [ADR-0001](docs/adr/0001-docume
 - A NixOS module goes into `nix/nixos/<name>.nix`, with its nixosTest in `nix/tests/<name>.nix`. Never import either from `nix/modules/default.nix`.
 - A new rule goes into `crates/rules/src/rules/`, with an ID in `RULES`, a case in a fixture in `crates/cli/tests/fixtures/`, and a line in the README table.
 - After a deliberate change to the rule output, run `just bless` and review the diff of the `.expected` files.
-- `crates/rules` never depends on an operations crate, so a check cannot reach a cluster.
+- `crates/rules` never depends on `crates/ops`, so a check cannot reach a cluster, per [ADR-1200](docs/adr/1200-platform-commands.md).
 - Before you finish a change, run `just check`. `just ci` runs the full sandboxed gate that CI runs, and the nested microVM test that CI cannot run.
 - Tag a release only after `just ci` passes on a Linux machine with KVM, per ADR-0500.
 - Commit messages are a Conventional Commits title only, with no body. Never push unless asked to.

@@ -502,6 +502,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "tabkit-ops"
+version = "0.16.0"
+
+[[package]]
 name = "tabkit-rules"
 version = "0.16.0"
 dependencies = [

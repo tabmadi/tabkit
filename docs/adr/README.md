@@ -17,5 +17,6 @@ Each ADR has a one-sentence **Decides** line and ends with a flat **Rules** sect
 | [0900](0900-architecture.md) | tabkit is one Rust binary that parses a repository once into a model and runs built-in rules with stable IDs over it |
 | [1000](1000-releases.md) | Every version is 0.y.z with a plain tag, any release may break a repository, and a repository pins a tag in its flake input |
 | [1100](1100-scope.md) | tabkit checks and generates from repository files, in rule groups that need their input, with citations and paths from each project |
+| [1200](1200-platform-commands.md) | The platform commands ship as the `tabkit-ops` binary in the `tabkit-platform` package, and a project holds only its data and its own logic |
 
 A new ADR starts from [`_template.md`](_template.md).

@@ -97,6 +97,22 @@
               nativeCheckInputs = [ pkgs.just ];
               meta.mainProgram = "tabkit";
             };
+
+            # The platform commands, in their own package, so a small repo never builds or downloads them.
+            tabkitPlatform = tabkitPackage.overrideAttrs (_: {
+              pname = "tabkit-platform";
+              cargoBuildFlags = [
+                "--package"
+                "tabkit-ops"
+              ];
+              cargoCheckFlags = [
+                "--package"
+                "tabkit-ops"
+              ];
+              # A CI gate shell builds this package on a cold runner, so the tests run in the `build-platform` check.
+              doCheck = false;
+              meta.mainProgram = "tabkit-ops";
+            });
           in
           {
             tabkit = {
@@ -121,6 +137,24 @@
 
             checks = {
               build = tabkitPackage;
+              build-platform = tabkitPlatform.overrideAttrs (_: {
+                doCheck = true;
+              });
+              # The embedded scripts follow the same shell rules as a repo that keeps its own.
+              lint-ops =
+                pkgs.runCommand "lint-ops"
+                  {
+                    nativeBuildInputs = [
+                      pkgs.shellcheck
+                      pkgs.shfmt
+                    ];
+                  }
+                  ''
+                    cd ${./crates/ops/scripts}
+                    shellcheck --external-sources --source-path=SCRIPTDIR --exclude=SC1091 -x --severity=warning *.sh lib/*.sh
+                    shfmt -d -i 2 .
+                    touch $out
+                  '';
               lint-rust = tabkitPackage.overrideAttrs (old: {
                 pname = "lint-rust";
                 nativeBuildInputs = old.nativeBuildInputs ++ [
@@ -184,6 +218,7 @@
             # VM itself, and a guest at that depth does not boot. `just ci` builds it on a Linux machine with KVM.
             packages = {
               default = tabkitPackage;
+              tabkit-platform = tabkitPlatform;
             }
             // lib.optionalAttrs pkgs.stdenv.hostPlatform.isLinux {
               nested-microvm-host = import ./nix/tests/microvm-host.nix {

@@ -1,30 +1,64 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": ["config:recommended", ":semanticCommits", ":dependencyDashboard"],
+  "extends": [
+    "config:recommended",
+    ":semanticCommits",
+    ":dependencyDashboard"
+  ],
   "description": [
     "Dependency updates, per ADR-0100. Renovate opens the pull request, and the CI gate decides. It merges nothing.",
     "The nix manager and the weekly lock file maintenance keep flake.lock current. The cargo manager keeps the crates current."
   ],
-  "labels": ["dependencies"],
+  "labels": [
+    "dependencies"
+  ],
   "rangeStrategy": "pin",
   "separateMajorMinor": true,
-  "schedule": ["before 6am on monday"],
-  "nix": { "enabled": true },
+  "schedule": [
+    "before 6am on monday"
+  ],
+  "nix": {
+    "enabled": true
+  },
   "lockFileMaintenance": {
     "enabled": true,
-    "schedule": ["before 6am on monday"]
+    "schedule": [
+      "before 6am on monday"
+    ]
   },
   "packageRules": [
     {
       "description": "A major version is a decision, so it is proposed alone and never joins a group.",
-      "matchUpdateTypes": ["major"],
+      "matchUpdateTypes": [
+        "major"
+      ],
       "groupName": null
     },
     {
       "description": "Minor and patch updates of the pinned inputs, crates, and Actions come in one pull request.",
-      "matchManagers": ["nix", "cargo", "github-actions"],
-      "matchUpdateTypes": ["minor", "patch"],
+      "matchManagers": [
+        "nix",
+        "cargo",
+        "github-actions"
+      ],
+      "matchUpdateTypes": [
+        "minor",
+        "patch"
+      ],
       "groupName": "toolchain"
+    }
+  ],
+  "customManagers": [
+    {
+      "customType": "regex",
+      "description": "An image that a platform command starts outside a cluster is a NAME_IMAGE variable in its library. No other manager reads a shell script.",
+      "managerFilePatterns": [
+        "/^crates/ops/scripts/lib/.+\\.sh$/"
+      ],
+      "matchStrings": [
+        "[A-Z_]+_IMAGE=\"(?<depName>[^\":]+):(?<currentValue>[^\"@]+)\""
+      ],
+      "datasourceTemplate": "docker"
     }
   ]
 }

@@ -255,6 +255,10 @@ Then run `tabkit check` at the root of a repository. Each finding is one line: `
 
 tabkit reads `.config/tabkit.toml`. An empty or missing file runs every rule with its defaults. [Configuration](docs/reference/configuration.md) lists the keys.
 
+## Platform commands
+
+A platform repo adds the `tabkit-platform` package to its dev shell. `tabkit-ops list` prints the commands, and `tabkit-ops <command>` runs one in the current repository. A small repo never builds this package, per [ADR-1200](docs/adr/1200-platform-commands.md).
+
 ## Decisions
 
 The ADRs in [docs/adr](docs/adr/README.md) record every decision and the reason for it.
