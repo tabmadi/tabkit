@@ -19,6 +19,7 @@ const REFS_OUT: &str = "infra/local/image-refs.txt";
 const SHARED: &str = "infra/gitops/platform/shared-values.yaml";
 const LOCAL_ENV: &str = "local";
 const ALL_ENVS: [&str; 4] = ["local", "dev", "staging", "prod"];
+const FETCH_ATTEMPTS: u32 = 3;
 const LOCAL_REGISTRY: &str = "registry.localhost:5000/";
 const WORKLOADS: [&str; 7] = [
     "Deployment",
@@ -311,15 +312,35 @@ fn ensure_deps(name: &str, dir: &Path) -> Result<()> {
         return Ok(());
     }
     let text = dir.to_string_lossy();
-    if helm_quiet(&["dependency", "build", &text]).is_none()
-        && helm_quiet(&["dependency", "update", &text]).is_none()
-    {
-        bail!("{name}: helm could not fetch the dependencies in Chart.lock");
-    }
+    fetch_deps(name, &text)?;
     if !deps_satisfied(dir)? {
         bail!("{name}: helm reported success and Chart.lock is still unsatisfied");
     }
     Ok(())
+}
+
+/// Fetches the subcharts. A clean machine has no repos, so `build` fails there and `update` covers it. An upstream index
+/// can fail for a moment, and a chart without its subcharts would give a shorter list, so the error stops the run.
+fn fetch_deps(name: &str, dir: &str) -> Result<()> {
+    let mut last = String::new();
+    for attempt in 0..FETCH_ATTEMPTS {
+        if attempt > 0 {
+            std::thread::sleep(std::time::Duration::from_secs(5));
+        }
+        if helm_quiet(&["dependency", "build", dir]).is_some() {
+            return Ok(());
+        }
+        let out = Command::new("helm")
+            .args(["dependency", "update", dir])
+            .stdin(Stdio::null())
+            .output()
+            .context("cannot run helm")?;
+        if out.status.success() {
+            return Ok(());
+        }
+        last = String::from_utf8_lossy(&out.stderr).trim().to_string();
+    }
+    bail!("{name}: helm could not fetch the dependencies in Chart.lock: {last}");
 }
 
 fn sorted_dirs(root: &str) -> Result<Vec<PathBuf>> {
