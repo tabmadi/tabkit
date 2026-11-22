@@ -1,6 +1,5 @@
 //! Signs a published image and attaches its SBOM and provenance. The key lives only in a private temp folder.
 
-use std::fmt::Write as _;
 use std::fs;
 use std::os::unix::fs::PermissionsExt;
 use std::path::{Path, PathBuf};
@@ -8,7 +7,7 @@ use std::path::{Path, PathBuf};
 use anyhow::{Context, Result, bail};
 use serde_json::json;
 
-use super::{detail, exec, ok, step, warn};
+use super::{exec, ok, step};
 
 const PRIVATE: &str = "infra/auth/cosign/signing-key.enc.yaml";
 
@@ -97,15 +96,6 @@ fn service(image: &str) -> &str {
 
 /// A failed record never fails the build, because the image is already signed and attested.
 fn file_record(work: &Work, image: &str) -> Result<()> {
-    let Some(url) = std::env::var("LOKI_PUSH_URL")
-        .ok()
-        .filter(|v| !v.is_empty())
-    else {
-        warn(
-            "LOKI_PUSH_URL unset: supply-chain record not filed. This build is still signed and attested",
-        );
-        return Ok(());
-    };
     let (name, digest) = image.split_once('@').context("the image has a digest")?;
     let line = json!({
         "event": "signed", "image": name, "digest": digest,
@@ -113,48 +103,7 @@ fn file_record(work: &Work, image: &str) -> Result<()> {
         "run": run_url(), "signed_at": now()?, "sbom": true, "provenance": true
     });
     let stream = json!({ "service": service(image), "env": env_or("SUPPLY_CHAIN_ENV", "dev"), "job": "supply-chain-build" });
-    let payload = json!({ "streams": [{ "stream": stream, "values": [[nanos()?.to_string(), line.to_string()]] }] });
-    let body = work.file("record.json");
-    fs::write(&body, payload.to_string())?;
-    let mut config = String::from("header = \"Content-Type: application/json\"\n");
-    for (variable, header) in [
-        ("LOKI_PUSH_TENANT", "X-Scope-OrgID"),
-        ("LOKI_PUSH_AUTH", "Authorization"),
-    ] {
-        if let Some(value) = std::env::var(variable).ok().filter(|v| !v.is_empty()) {
-            writeln!(
-                config,
-                "header = {}",
-                exec::curl_quote(&format!("{header}: {value}"))
-            )
-            .expect("a string write");
-        }
-    }
-    let target = format!("{}/loki/api/v1/push", url.trim_end_matches('/'));
-    let data = format!("@{body}");
-    let args = [
-        "--silent",
-        "--show-error",
-        "--fail",
-        "--max-time",
-        "20",
-        "-o",
-        "/dev/null",
-        "-X",
-        "POST",
-        &target,
-        "--data-binary",
-        &data,
-    ];
-    match exec::curl(&config, &args) {
-        Ok((true, _)) => detail("supply-chain record filed to Loki"),
-        _ => {
-            warn(
-                "supply-chain record could not be filed to Loki. The build itself is not affected",
-            );
-        }
-    }
-    Ok(())
+    super::loki::push(&stream, &line, &work.0)
 }
 
 pub fn run(args: &[String]) -> Result<()> {

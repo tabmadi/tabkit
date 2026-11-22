@@ -21,6 +21,23 @@ pub fn output(program: &str, args: &[&str]) -> Result<String> {
     Ok(String::from_utf8_lossy(&out.stdout).into_owned())
 }
 
+/// Runs a tool with extra environment variables and returns its standard output.
+pub fn output_env(program: &str, args: &[&str], envs: &[(&str, &str)]) -> Result<String> {
+    let out = Command::new(program)
+        .args(args)
+        .envs(envs.iter().copied())
+        .stdin(Stdio::null())
+        .output()
+        .with_context(|| format!("cannot run {program}"))?;
+    if !out.status.success() {
+        bail!(
+            "{program} failed: {}",
+            String::from_utf8_lossy(&out.stderr).trim()
+        );
+    }
+    Ok(String::from_utf8_lossy(&out.stdout).into_owned())
+}
+
 /// Runs a tool that prints to the terminal of the caller.
 pub fn status(program: &str, args: &[&str], envs: &[(&str, &str)]) -> Result<()> {
     let result = Command::new(program)

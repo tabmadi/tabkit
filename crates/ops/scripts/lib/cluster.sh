@@ -538,7 +538,7 @@ stage_middlewares() {
 stage_secrets() {
   # The template ships one local age key, so this creates a key for the project and re-encrypts the bundle.
   # It runs before the decrypt, which then needs a key that this repository no longer holds.
-  bash "$OPS/rotate-local-age-key.sh"
+  tabkit-ops rotate-local-age-key
 
   step "materialising kratos-secrets from the committed local SOPS bundle"
   local secrets dsn

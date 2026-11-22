@@ -5,13 +5,17 @@ pub mod ci;
 pub mod exec;
 pub mod files;
 pub mod forge;
+pub mod forgeops;
 pub mod generate;
 pub mod lint;
+pub mod loki;
 pub mod project;
 pub mod promote;
 pub mod prune;
 pub mod release;
+pub mod secrets;
 pub mod sign;
+pub mod supply;
 pub mod values;
 
 use anyhow::{Context, Result, bail};
@@ -19,6 +23,7 @@ use anyhow::{Context, Result, bail};
 /// The commands that this module runs in place of an embedded script.
 pub const COMMANDS: &[&str] = &[
     "act-local",
+    "bootstrap",
     "ci-affected-adversarial",
     "ci-affected-matrix",
     "ci-build-context",
@@ -39,6 +44,9 @@ pub const COMMANDS: &[&str] = &[
     "dns",
     "e2e",
     "env-ensure",
+    "forge-apply",
+    "forge-ci-user",
+    "forge-sprint",
     "format-shell",
     "frontend-sourcemaps",
     "gen-admin",
@@ -60,7 +68,13 @@ pub const COMMANDS: &[&str] = &[
     "promote-prod",
     "promote-verify",
     "release",
+    "rotate-local-age-key",
     "scan",
+    "secrets-age",
+    "secrets-cosign",
+    "secrets-gpg",
+    "secrets-updatekeys",
+    "supply-chain-inventory",
     "test-alerts",
 ];
 
@@ -72,6 +86,16 @@ pub fn run(name: &str, args: &[String]) -> Result<()> {
     }
     enter_root()?;
     match name {
+        "bootstrap" => secrets::bootstrap(),
+        "forge-apply" => forgeops::apply(),
+        "forge-ci-user" => forgeops::ci_user(),
+        "forge-sprint" => forgeops::sprint(),
+        "rotate-local-age-key" => secrets::rotate_local(args),
+        "secrets-age" => secrets::age(),
+        "secrets-cosign" => secrets::cosign(),
+        "secrets-gpg" => secrets::gpg(),
+        "secrets-updatekeys" => secrets::update_keys(),
+        "supply-chain-inventory" => supply::inventory(),
         "act-local" => release::act_local(args),
         "ci-affected-adversarial" => ci::affected_adversarial(),
         "ci-affected-matrix" => ci::affected_matrix(),
