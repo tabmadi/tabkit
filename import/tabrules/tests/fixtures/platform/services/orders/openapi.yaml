@@ -1,0 +1,10 @@
+info: { x-audience: public }
+paths:
+  /orders:
+    get: { operationId: list }
+components:
+  schemas:
+    Order:
+      type: object
+      properties:
+        price: { type: number }

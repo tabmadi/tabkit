@@ -1,0 +1,8 @@
+kind: IngressRoute
+metadata:
+  name: ordered
+spec:
+  routes:
+    - middlewares:
+        - name: oathkeeper-forward-auth
+        - name: strip-identity-headers

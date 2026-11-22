@@ -1,0 +1,29 @@
+#!/bin/sh
+# Stands in for Helm in the fixture tests: one workload over its limits, and one route with no header strip.
+if [ "$1" = template ]; then
+  cat <<'E'
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api
+spec:
+  template:
+    spec:
+      containers:
+        - name: app
+          resources:
+            requests:
+              cpu: 2
+            limits:
+              cpu: 1
+              memory: 2Gi
+---
+kind: IngressRoute
+metadata:
+  name: route
+spec:
+  routes:
+    - middlewares:
+        - name: oathkeeper-forward-auth
+E
+fi

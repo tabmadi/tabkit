@@ -1,0 +1,3 @@
+#!/bin/sh
+# Stands in for `go list -deps -json` in the fixture tests.
+printf '{"ImportPath":"go.temporal.io/sdk/client","Dir":""}\n'

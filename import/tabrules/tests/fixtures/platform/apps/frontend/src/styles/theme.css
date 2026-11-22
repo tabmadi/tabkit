@@ -1,0 +1,9 @@
+:root {
+  --background: #ffffff;
+  --foreground: #eeeeee;
+  --card: #ffffff;
+  --muted-foreground: #000000;
+  --destructive: #000000;
+  --ring: #000000;
+  --input: #000000;
+}

@@ -1,0 +1,4 @@
+export PORT := env("PORT", "9999")
+
+server:
+    just --justfile ../../justfile svc-ghost

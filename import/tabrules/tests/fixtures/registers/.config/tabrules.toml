@@ -1,0 +1,9 @@
+[rules."docs/headcount"]
+
+[rules."docs/stack-table"]
+
+[rules."docs/principles"]
+foundations = "docs/adr/0000-foundations.md"
+
+[rules."gen/rules-index"]
+rules-path = "docs/reference/rules-index.md"
