@@ -47,6 +47,7 @@
         go = ./nix/modules/go.nix;
         shell = ./nix/modules/shell.nix;
         deploy = flake-parts-lib.importApply ./nix/modules/deploy.nix inputs;
+        fullTier = flake-parts-lib.importApply ./nix/modules/full-tier.nix inputs;
         microvmHost = flake-parts-lib.importApply ./nix/nixos/microvm-host.nix inputs;
         nixCache = flake-parts-lib.importApply ./nix/nixos/nix-cache.nix inputs;
       in
@@ -55,6 +56,7 @@
         flake.flakeModules = {
           default = module;
           # The opt-in modules of ADR-0400. A repo imports one only when it has the part.
+          full-tier = fullTier;
           inherit
             bun
             deploy
@@ -227,6 +229,9 @@
               monitoring = import ./nix/tests/monitoring.nix {
                 inherit pkgs;
                 module = ./nix/nixos/monitoring.nix;
+              };
+              module-full-tier = import ./nix/tests/full-tier.nix {
+                inherit pkgs inputs fullTier;
               };
               module-stable = import ./nix/tests/stable.nix {
                 inherit pkgs;

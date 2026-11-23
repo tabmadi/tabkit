@@ -116,6 +116,8 @@ The installer of the host and the layout of its disks stay in the repo, because 
 - A secret of a guest is a path at run time outside the Nix store, and the module asserts it.
 - A published port with `publishSources` accepts only those IPv4 ranges, on the host and in the guest.
 - A new `secretsRevision` copies the secrets of the guest again and restarts the guest.
+- `flakeModules.full-tier` runs the host in QEMU on two disks. A start refuses to run without its free memory and disk.
+- A full tier command acts only on the QEMU process of its own state folder.
 - A repo deploys a machine through `flakeModules.deploy`, with magic rollback on. `(CI: ci)`
 - The first deploy after an install deploys the installed config again, so that a rollback has a generation of deploy-rs to return to.
 - A release upgrade of NixOS is `deploy --boot` and a reboot, never a live switch.
