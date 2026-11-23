@@ -69,3 +69,4 @@ CI takes longer, because each test boots VMs. GitHub does not bill a public repo
 - A module takes a secret as a path at run time, outside the Nix store, and asserts it.
 - An upstream behind `mtls-gate` listens only on the loopback address.
 - A new NixOS module bumps the minor version.
+- Every NixOS module evaluates on the stable release that machines run. `(CI: ci)`

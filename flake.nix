@@ -27,6 +27,8 @@
       url = "github:Mic92/niks3";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    # The check of ADR-0300 evaluates every NixOS module on the stable release that machines run.
+    nixos-stable.url = "github:NixOS/nixpkgs/nixos-26.05";
     # The microvm-host module of ADR-0500 runs each guest with microvm.nix.
     microvm = {
       url = "github:microvm-nix/microvm.nix";
@@ -225,6 +227,19 @@
               monitoring = import ./nix/tests/monitoring.nix {
                 inherit pkgs;
                 module = ./nix/nixos/monitoring.nix;
+              };
+              module-stable = import ./nix/tests/stable.nix {
+                inherit pkgs;
+                stable = inputs.nixos-stable;
+                modules = [
+                  ./nix/nixos/server.nix
+                  microvmHost
+                  ./nix/nixos/postgres.nix
+                  ./nix/nixos/openbao.nix
+                  ./nix/nixos/temporal.nix
+                  ./nix/nixos/monitoring.nix
+                  ./nix/nixos/cloudflare-origin.nix
+                ];
               };
               temporal = import ./nix/tests/temporal.nix {
                 inherit pkgs;
