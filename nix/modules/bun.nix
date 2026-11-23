@@ -103,6 +103,15 @@ in
           defaultText = lib.literalMD "Bun 1.4.5 from its release";
           description = "The Bun of the dev shell and of every Bun check. A repo takes Bun from here, never from pkgs.bun.";
         };
+        lockDirs = mkOption {
+          type = types.listOf types.str;
+          default = [ "." ];
+          example = [
+            "."
+            "signer"
+          ];
+          description = "The folders that each hold a bun.lock and its bun.nix. The hook keeps every pair in step.";
+        };
         tools = mkOption {
           type = types.listOf types.package;
           default = [ ];
@@ -159,9 +168,12 @@ in
         tabkit.hooks.bun-nix = {
           name = "bun2nix";
           entry = "${pkgs.writeShellScript "bun-nix-check" ''
-            ${bun2nix}/bin/bun2nix -o bun.nix
-            ${pkgs.nixfmt}/bin/nixfmt bun.nix
-            ${pkgs.gitMinimal}/bin/git diff --exit-code -- bun.nix
+            status=0
+            for dir in ${lib.escapeShellArgs cfg.lockDirs}; do
+              (cd "$dir" && ${bun2nix}/bin/bun2nix -o bun.nix && ${pkgs.nixfmt}/bin/nixfmt bun.nix) || status=1
+              ${pkgs.gitMinimal}/bin/git diff --exit-code -- "$dir/bun.nix" || status=1
+            done
+            exit "$status"
           ''}";
           files = "(^|/)(bun\\.lock|bun\\.nix)$";
           pass_filenames = false;
