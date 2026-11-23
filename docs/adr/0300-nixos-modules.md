@@ -31,6 +31,8 @@ A module that guards a trust boundary must prove that it refuses what it must re
 
 **PostgreSQL is `nixosModules.postgres`.** Every network connection uses TLS 1.3 and a SCRAM password. The roles come from a secret at run time. pgBackRest archives the WAL and takes a scheduled full backup. The nixosTest restores a row that only the archived WAL holds.
 
+**OpenBao is `nixosModules.openbao`.** It runs on Raft storage with TLS 1.3 and a file audit log. A timer signs in with a client certificate and writes a snapshot that age encrypts. The nixosTest restores a deleted secret from that snapshot.
+
 | Option, under `tabkit.mtlsGate.<name>` | Sets |
 | --- | --- |
 | `address` and `port` | Where the gate listens |

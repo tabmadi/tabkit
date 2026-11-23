@@ -68,6 +68,7 @@
           server = ./nix/nixos/server.nix;
           microvm-host = microvmHost;
           nix-cache = nixCache;
+          openbao = ./nix/nixos/openbao.nix;
           postgres = ./nix/nixos/postgres.nix;
         };
 
@@ -208,6 +209,10 @@
               nix-cache = import ./nix/tests/nix-cache.nix {
                 inherit pkgs;
                 module = nixCache;
+              };
+              openbao = import ./nix/tests/openbao.nix {
+                inherit pkgs;
+                module = ./nix/nixos/openbao.nix;
               };
               postgres = import ./nix/tests/postgres.nix {
                 inherit pkgs;
