@@ -29,6 +29,8 @@ A module that guards a trust boundary must prove that it refuses what it must re
 
 **The mTLS gate is `nixosModules.mtls-gate`.** nginx admits a request only with a client certificate that one CA signs. The firewall opens the port only to the listed source addresses.
 
+**PostgreSQL is `nixosModules.postgres`.** Every network connection uses TLS 1.3 and a SCRAM password. The roles come from a secret at run time. pgBackRest archives the WAL and takes a scheduled full backup. The nixosTest restores a row that only the archived WAL holds.
+
 | Option, under `tabkit.mtlsGate.<name>` | Sets |
 | --- | --- |
 | `address` and `port` | Where the gate listens |

@@ -68,6 +68,7 @@
           server = ./nix/nixos/server.nix;
           microvm-host = microvmHost;
           nix-cache = nixCache;
+          postgres = ./nix/nixos/postgres.nix;
         };
 
         # The checks of the modules live here, not in the module that every repo imports. The nixosTests boot VMs.
@@ -207,6 +208,10 @@
               nix-cache = import ./nix/tests/nix-cache.nix {
                 inherit pkgs;
                 module = nixCache;
+              };
+              postgres = import ./nix/tests/postgres.nix {
+                inherit pkgs;
+                module = ./nix/nixos/postgres.nix;
               };
               server = import ./nix/tests/server.nix {
                 inherit pkgs;
