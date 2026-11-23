@@ -215,6 +215,10 @@ pub const RULES: &[(&str, &str)] = &[
         "A column that holds personal data by its name has a `pii:` tag",
     ),
     (
+        "alert/runbook",
+        "Every alert names a runbook that exists in this repo",
+    ),
+    (
         "alert/severity",
         "Every alert has an allowed severity, and a dead man's switch exists",
     ),

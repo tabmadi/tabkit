@@ -49,7 +49,9 @@ infra/helm/platform/resource-governance/values.yaml: kube/resource-governance: p
 infra/helm/platform/resource-governance/values.yaml: kube/resource-governance: platform: summed requests.cpu is 8.00 cores, cap is 1.00 cores. Pods would be rejected
 infra/helm/service: edge/strip-headers: route: forward-auth route without strip-identity-headers
 infra/observability/alerts/rules.yaml: alert/severity: no Watchdog rule. Nothing detects a dead alerting pipeline
+infra/observability/alerts/rules.yaml:4: alert/runbook: NoSeverity names no runbook
 infra/observability/alerts/rules.yaml:4: alert/severity: NoSeverity has no severity
+infra/observability/alerts/rules.yaml:6: alert/runbook: BadSeverity names `docs/guide/missing.md`, which is not a file of this repo
 infra/observability/alerts/rules.yaml:6: alert/severity: BadSeverity has severity `critical`, which is not page or ticket
 infra/project.yaml: project/identity: 1 files still carry `old.example`
 infra/talos/inventory/dev/nodes.yml: naming/resource: host `acmeco-dev-db`: `db` is not a role in the role table

@@ -42,6 +42,7 @@ cite = "ADR-0111"
 | `frontend/contrast` | `theme` |
 | `frontend/fixture` | `paths`, `seams`, `sdks` |
 | `sql/pii-tag` | `paths` |
+| `alert/runbook` | `paths`, `annotation` |
 | `alert/severity` | `paths`, `allowed`, `watchdog` |
 | `api/audience` | `specs`, `values` |
 | `edge/api-wildcard` | `access-rules` |

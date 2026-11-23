@@ -7,3 +7,5 @@ groups:
         expr: up
         labels:
           severity: critical
+        annotations:
+          runbook: docs/guide/missing.md

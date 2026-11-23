@@ -14,6 +14,7 @@ use tabkit_core::yaml;
 
 const PII: &str = "sql/pii-tag";
 const SEVERITY: &str = "alert/severity";
+const RUNBOOK: &str = "alert/runbook";
 const AUDIENCE: &str = "api/audience";
 const PREFIXES: &str = "api/prefixes";
 const WILDCARD: &str = "edge/api-wildcard";
@@ -30,6 +31,7 @@ fn re(pattern: &str) -> Regex {
 pub fn check(ctx: &Ctx<'_>) -> Result<Vec<Finding>> {
     let mut out = pii(ctx)?;
     out.extend(severity(ctx)?);
+    out.extend(runbook(ctx)?);
     out.extend(api(ctx)?);
     out.extend(edge(ctx)?);
     out.extend(naming(ctx)?);
@@ -241,6 +243,62 @@ fn severity(ctx: &Ctx<'_>) -> Result<Vec<Finding>> {
     if !found {
         let message = format!("no {watchdog} rule. Nothing detects a dead alerting pipeline");
         out.push(Finding::new(first, 0, SEVERITY, message));
+    }
+    Ok(out)
+}
+
+/// The repo path of a runbook reference: a relative path, or a forge link with `/blob/<branch>/`.
+fn runbook_path(target: &str) -> &str {
+    let clean = target.split('#').next().unwrap_or(target);
+    match clean.split_once("/blob/") {
+        Some((_, rest)) => rest.split_once('/').map_or(rest, |(_, path)| path),
+        None => clean.trim_start_matches("./"),
+    }
+}
+
+/// Every alert names a runbook that exists in this repo.
+fn runbook(ctx: &Ctx<'_>) -> Result<Vec<Finding>> {
+    if !ctx.cfg.enabled(RUNBOOK) {
+        return Ok(Vec::new());
+    }
+    let paths = ctx.paths(RUNBOOK, "paths", &["infra/observability/alerts/*.yaml"])?;
+    let annotation = one(ctx, RUNBOOK, "annotation", "runbook")?;
+    let mut out = Vec::new();
+    for path in ctx.repo.files.iter().filter(|f| paths.matches(f)) {
+        let source = ctx
+            .repo
+            .read(path)
+            .with_context(|| format!("read {path}"))?;
+        let docs = match yaml::load(&source) {
+            Ok(docs) => docs,
+            Err(e) => {
+                out.push(Finding::new(path, 0, RUNBOOK, format!("parse: {e}")));
+                continue;
+            }
+        };
+        let Some(doc) = docs.first() else {
+            continue;
+        };
+        for group in get(doc, "groups").map_or(&[][..], yaml::items) {
+            for rule in get(group, "rules").map_or(&[][..], yaml::items) {
+                let alert = text(rule, "alert");
+                if alert.is_empty() {
+                    continue;
+                }
+                let line = get(rule, "alert").map_or(0, |n| n.span.start.line());
+                let target = get(rule, "annotations")
+                    .map(|a| text(a, &annotation))
+                    .unwrap_or_default();
+                if target.is_empty() {
+                    let message = format!("{alert} names no runbook");
+                    out.push(Finding::new(path, line, RUNBOOK, message));
+                } else if !ctx.repo.files.iter().any(|f| f == runbook_path(&target)) {
+                    let message =
+                        format!("{alert} names `{target}`, which is not a file of this repo");
+                    out.push(Finding::new(path, line, RUNBOOK, message));
+                }
+            }
+        }
     }
     Ok(out)
 }
@@ -634,6 +692,17 @@ fn naming(ctx: &Ctx<'_>) -> Result<Vec<Finding>> {
 
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn runbook_paths() {
+        use super::runbook_path;
+        assert_eq!(runbook_path("docs/guide/a.md"), "docs/guide/a.md");
+        assert_eq!(runbook_path("./docs/guide/a.md#step"), "docs/guide/a.md");
+        assert_eq!(
+            runbook_path("https://github.com/o/r/blob/main/docs/guide/a.md"),
+            "docs/guide/a.md"
+        );
+    }
+
     use super::*;
 
     #[test]
