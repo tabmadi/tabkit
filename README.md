@@ -14,7 +14,7 @@ tabkit has one maintainer. It is free to use under the Apache License 2.0, and i
 | `formatter` | nixfmt |
 | `systems` | Linux, on x86-64 and ARM. Linux is the one supported platform |
 | Opt-in flake modules | `template` adds the `templates` output and the `lint-scope` check. `bun`, `go`, and `shell` serve a repo with that part. `deploy` serves a repo that deploys its own machines. Each one has a check |
-| NixOS modules | `server`, `microvm-host`, `mtls-gate`, `nix-cache`, `postgres`, `openbao`, `temporal`, and `monitoring`, for the machines that a repo runs. Each one has a nixosTest |
+| NixOS modules | `server`, `microvm-host`, `mtls-gate`, `nix-cache`, `postgres`, `openbao`, `temporal`, `monitoring`, `cloudflare-origin`, and `sops-guests`, for the machines that a repo runs. Each one has a nixosTest |
 | Binary cache | `nix-cache-push` in the dev shell, which `just cache-push` runs after the CI gate. The variables `NIX_CACHE_URL` and `NIX_CACHE_PUBLIC_KEY` of a repo turn it on |
 
 ## Getting started

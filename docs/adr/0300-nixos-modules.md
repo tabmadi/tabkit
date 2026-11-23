@@ -37,6 +37,10 @@ A module that guards a trust boundary must prove that it refuses what it must re
 
 **Monitoring is `nixosModules.monitoring`.** Prometheus and Alertmanager listen on the loopback address only. The module holds the base alerts of a server, and a repo adds its own jobs and rules.
 
+**The Cloudflare origin is `nixosModules.cloudflare-origin`.** nginx ends TLS with the origin certificate and answers only a peer in the Cloudflare ranges. The module holds the ranges, so a host can filter the same sources.
+
+**Guest secrets from SOPS are `nixosModules.sops-guests`.** A repo names the content of each file of a guest. A change in an encrypted file restarts only the guests that read from it.
+
 | Option, under `tabkit.mtlsGate.<name>` | Sets |
 | --- | --- |
 | `address` and `port` | Where the gate listens |

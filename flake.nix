@@ -69,7 +69,9 @@
           microvm-host = microvmHost;
           nix-cache = nixCache;
           openbao = ./nix/nixos/openbao.nix;
+          cloudflare-origin = ./nix/nixos/cloudflare-origin.nix;
           monitoring = ./nix/nixos/monitoring.nix;
+          sops-guests = ./nix/nixos/sops-guests.nix;
           postgres = ./nix/nixos/postgres.nix;
           temporal = ./nix/nixos/temporal.nix;
         };
@@ -211,6 +213,14 @@
               nix-cache = import ./nix/tests/nix-cache.nix {
                 inherit pkgs;
                 module = nixCache;
+              };
+              cloudflare-origin = import ./nix/tests/cloudflare-origin.nix {
+                inherit pkgs;
+                module = ./nix/nixos/cloudflare-origin.nix;
+              };
+              sops-guests = import ./nix/tests/sops-guests.nix {
+                inherit pkgs;
+                module = ./nix/nixos/sops-guests.nix;
               };
               monitoring = import ./nix/tests/monitoring.nix {
                 inherit pkgs;
