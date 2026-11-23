@@ -18,6 +18,7 @@ pkgs.testers.runNixOSTest {
       {
         imports = [ module ];
         virtualisation.memorySize = 1536;
+        networking.nftables.enable = true;
         environment.systemPackages = [ pkgs.postgresql_19 ];
 
         # Each secret reaches the machine at run time, as a real secret does.

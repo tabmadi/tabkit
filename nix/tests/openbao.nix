@@ -33,6 +33,7 @@ pkgs.testers.runNixOSTest {
     server = {
       imports = [ module ];
       virtualisation.memorySize = 1536;
+      networking.nftables.enable = true;
       environment.systemPackages = [
         pkgs.age
         pkgs.jq
