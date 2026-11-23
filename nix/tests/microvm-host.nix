@@ -1,6 +1,6 @@
 # The nixosTest of the microVM host, per ADR-0500. A host runs two guests as nested microVMs. The test proves
-# that only a declared flow crosses the host, that only a guest with egress reaches the network beyond it, and
-# that a guest reads its secrets and cannot change them.
+# that only a declared flow crosses the host, that only a guest with egress reaches the network beyond it, that a
+# published port accepts only its sources, and that a guest reads its secrets, cannot change them, and gets a new value.
 { pkgs, module }:
 let
   keys = import "${pkgs.path}/nixos/tests/ssh-keys.nix" pkgs;
@@ -39,6 +39,7 @@ pkgs.testers.runNixOSTest {
       networking.nftables.enable = true;
       networking.firewall.enable = true;
       environment.systemPackages = [ pkgs.openssh ];
+      specialisation.rotated.configuration.tabkit.microvmHost.guests.b.secretsRevision = "2";
 
       # The secret reaches the host at run time, as a real secret does.
       systemd.tmpfiles.rules = [
@@ -58,7 +59,12 @@ pkgs.testers.runNixOSTest {
             mac = "02:00:00:00:00:10";
             memory = 384;
             egress = true;
-            config = web "a" [ 7070 ];
+            publish = [ 7071 ];
+            publishSources = [ "203.0.113.0/24" ];
+            config = web "a" [
+              7070
+              7071
+            ];
           };
           b = {
             address = "10.20.0.20";
@@ -66,6 +72,7 @@ pkgs.testers.runNixOSTest {
             memory = 384;
             secrets.token = "/run/test/token";
             publish = [ 8080 ];
+            publishSources = [ "192.168.1.0/24" ];
             config = web "b" [
               8080
               9090
@@ -82,7 +89,7 @@ pkgs.testers.runNixOSTest {
       };
     };
 
-    # A machine beyond the uplink of the host.
+    # A machine beyond the uplink of the host. Its address is inside the sources of guest b only.
     outside = {
       environment.systemPackages = [ pkgs.curl ];
       # A route to the guests through the host, so the test proves that the host drops, not that no route exists.
@@ -120,7 +127,7 @@ pkgs.testers.runNixOSTest {
     # Nested guests boot slowly on a CI runner that is itself a VM.
     for name, ip in guests.items():
         host.wait_until_succeeds(on(name, "true"), timeout=600)
-    host.wait_until_succeeds(on("a", "systemctl is-active web-7070"), timeout=600)
+    host.wait_until_succeeds(on("a", "systemctl is-active web-7070 web-7071"), timeout=600)
     host.wait_until_succeeds(on("b", "systemctl is-active web-8080 web-9090"), timeout=600)
 
     with subtest("A declared flow crosses the host"):
@@ -149,6 +156,9 @@ pkgs.testers.runNixOSTest {
         out = outside.succeed(curl(host_ip, 8080))
         assert out.strip() == "b", out
 
+    with subtest("A published port refuses a source outside its ranges"):
+        outside.fail(curl(host_ip, 7071))
+
     with subtest("A guest port that is not published stays closed from beyond the host"):
         outside.fail(curl("10.20.0.20", 9090))
         outside.fail(curl("10.20.0.10", 7070))
@@ -161,5 +171,10 @@ pkgs.testers.runNixOSTest {
 
     with subtest("A guest without secrets sees none of another guest"):
         host.fail(on("a", "cat /run/host-secrets/token"))
+
+    with subtest("A new secrets revision restarts the guest with the new value"):
+        host.succeed("install -m 0400 /dev/stdin /run/test/token <<< rotated-value")
+        host.succeed("/run/current-system/specialisation/rotated/bin/switch-to-configuration test")
+        host.wait_until_succeeds(on("b", "grep -qx rotated-value /run/host-secrets/token"), timeout=600)
   '';
 }

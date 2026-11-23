@@ -19,6 +19,10 @@ let
 
   ports = list: "{ ${lib.concatMapStringsSep ", " toString list} }";
 
+  # An empty list of sources accepts a published port from any address.
+  sourceMatch =
+    sources: lib.optionalString (sources != [ ]) "ip saddr { ${lib.concatStringsSep ", " sources} } ";
+
   # One rule for each declared flow. The forward chain drops every other new connection between guests.
   flowRule =
     flow:
@@ -28,7 +32,10 @@ let
   publishRules = lib.concatMap (
     name:
     map (
-      port: "ip daddr ${address name} tcp dport ${toString port} ct status dnat accept"
+      port:
+      "${
+        sourceMatch cfg.guests.${name}.publishSources
+      }ip daddr ${address name} tcp dport ${toString port} ct status dnat accept"
     ) cfg.guests.${name}.publish
   ) names;
 
@@ -105,6 +112,18 @@ let
           default = [ ];
           example = [ 443 ];
           description = "The TCP ports of the uplink that the host forwards to the same port of the guest.";
+        };
+        publishSources = mkOption {
+          type = types.listOf types.str;
+          default = [ ];
+          example = [ "203.0.113.0/24" ];
+          description = "The IPv4 source ranges that may reach the published ports. An empty list accepts any source.";
+        };
+        secretsRevision = mkOption {
+          type = types.str;
+          default = "";
+          example = "a hash of the encrypted secrets file";
+          description = "A value that changes with the secret values. A new value copies the secrets again and restarts the guest.";
         };
         secrets = mkOption {
           type = types.attrsOf types.str;
@@ -190,7 +209,9 @@ let
       networking.firewall.extraInputRules = lib.concatStringsSep "\n" (
         [ "ip saddr ${cfg.gateway} tcp dport 22 accept" ]
         ++ map (f: "ip saddr ${address f.from} ${f.protocol} dport ${ports f.ports} accept") inbound
-        ++ lib.optional (guest.publish != [ ]) "tcp dport ${ports guest.publish} accept"
+        ++ lib.optional (
+          guest.publish != [ ]
+        ) "${sourceMatch guest.publishSources}tcp dport ${ports guest.publish} accept"
       );
 
       services.timesyncd.servers = [ cfg.gateway ];
@@ -363,7 +384,10 @@ in
           description = "Copy the secrets of guest ${name} into its share";
           before = [ "microvm@${name}.service" ];
           requiredBy = [ "microvm@${name}.service" ];
-          restartTriggers = [ (builtins.toJSON cfg.guests.${name}.secrets) ];
+          restartTriggers = [
+            (builtins.toJSON cfg.guests.${name}.secrets)
+            cfg.guests.${name}.secretsRevision
+          ];
           serviceConfig = {
             Type = "oneshot";
             RemainAfterExit = true;

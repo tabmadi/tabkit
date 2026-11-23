@@ -74,10 +74,10 @@ Sources:
 | `uplink` | The interface that leads beyond the host |
 | `nameservers` | The DNS resolvers of every guest |
 | `adminKeys` | The SSH keys that log in to each guest as root, from the host only |
-| `guests.<name>` | The address, MAC, CPUs, memory, data volume, egress, published ports, secrets, and NixOS config of one guest |
+| `guests.<name>` | The address, MAC, CPUs, memory, data volume, egress, published ports and their sources, secrets, secrets revision, and NixOS config of one guest |
 | `flows` | The connections that one guest may open to another, by ports |
 
-The forward chain accepts only three kinds of traffic. These are the declared flows, the published ports after their destination NAT, and the traffic of a guest with `egress` to the uplink. The input firewall of each guest opens each port of a flow to the source of that flow only. A published port forwards from every address of the uplink, as `networking.nat.forwardPorts` does.
+The forward chain accepts only three kinds of traffic. These are the declared flows, the published ports from their sources after destination NAT, and the traffic of a guest with `egress` to the uplink. The input firewall of each guest opens each port of a flow to the source of that flow only. A published port forwards from every address of the uplink, as `networking.nat.forwardPorts` does.
 
 Each guest reads its secrets at `/run/host-secrets`, a read-only share. A unit on the host copies each secret from its path into the share before the guest starts. The share is in `/run`, so no secret reaches a disk. The store and the secrets are shared with virtiofs, and `/var` of each guest is a volume.
 
@@ -114,6 +114,8 @@ The installer of the host and the layout of its disks stay in the repo, because 
 - A machine that a repo runs imports `nixosModules.server`.
 - A guest is a `tabkit.microvmHost.guests` entry, and a connection between guests is a `tabkit.microvmHost.flows` entry. No rule of the repo opens the forward chain by hand.
 - A secret of a guest is a path at run time outside the Nix store, and the module asserts it.
+- A published port with `publishSources` accepts only those IPv4 ranges, on the host and in the guest.
+- A new `secretsRevision` copies the secrets of the guest again and restarts the guest.
 - A repo deploys a machine through `flakeModules.deploy`, with magic rollback on. `(CI: ci)`
 - The first deploy after an install deploys the installed config again, so that a rollback has a generation of deploy-rs to return to.
 - A release upgrade of NixOS is `deploy --boot` and a reboot, never a live switch.
