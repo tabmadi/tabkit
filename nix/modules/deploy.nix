@@ -49,6 +49,26 @@ let
           default = 300;
           description = "The seconds that the node waits for a new SSH connection before it rolls back.";
         };
+        hostKey = mkOption {
+          type = types.nullOr (
+            types.submodule {
+              options = {
+                sopsFile = mkOption {
+                  type = types.str;
+                  example = "infra/secrets/dev/pki.sops.yaml";
+                  description = "The encrypted file that holds the SSH host key, relative to the repo root.";
+                };
+                key = mkOption {
+                  type = types.str;
+                  example = "SSH_HOST_KEY";
+                  description = "The top-level key of the SSH host key in that file.";
+                };
+              };
+            }
+          );
+          default = null;
+          description = "The SSH host key that the install places, so the machine can decrypt its SOPS secrets on first boot.";
+        };
       };
     };
 
@@ -86,11 +106,37 @@ in
 
     # deploy-rs checks the schema of the nodes and that each profile activates. A NixOS profile builds on Linux only.
     perSystem =
-      { system, ... }:
+      { pkgs, system, ... }:
       {
         checks = lib.optionalAttrs (lib.hasSuffix "-linux" system) (
           localInputs.deploy-rs.lib.${system}.deployChecks config.flake.deploy
         );
+
+        # `nix run .#install-<node> -- <target>` erases the disks of the target and installs the node.
+        packages = lib.mapAttrs' (
+          name: n:
+          lib.nameValuePair "install-${name}" (
+            pkgs.writeShellApplication {
+              name = "install-${name}";
+              runtimeInputs = [
+                pkgs.nixos-anywhere
+                pkgs.openssh
+                pkgs.sops
+              ];
+              text = ''
+                target=''${1:?Name the target, such as root@203.0.113.10}
+                extra=$(mktemp -d)
+                trap 'rm -rf "$extra"' EXIT
+                install -d -m 0755 "$extra/etc/ssh"
+                sops decrypt --extract ${lib.escapeShellArg ''["${n.hostKey.key}"]''} ${lib.escapeShellArg n.hostKey.sopsFile} \
+                  > "$extra/etc/ssh/ssh_host_ed25519_key"
+                chmod 0600 "$extra/etc/ssh/ssh_host_ed25519_key"
+                ssh-keygen -y -f "$extra/etc/ssh/ssh_host_ed25519_key" > "$extra/etc/ssh/ssh_host_ed25519_key.pub"
+                nixos-anywhere --flake ${lib.escapeShellArg ".#${n.configuration}"} --extra-files "$extra" --target-host "$target"
+              '';
+            }
+          )
+        ) (lib.filterAttrs (_: n: n.hostKey != null) cfg.nodes);
       };
   };
 }
