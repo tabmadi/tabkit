@@ -21,9 +21,9 @@ const MONEY_WORDS: [&str; 10] = [
     "total",
 ];
 /// A last word that counts something and holds no value.
-const COUNT_WORDS: [&str; 15] = [
-    "bytes", "count", "items", "keys", "length", "models", "pages", "points", "quantity", "qty",
-    "rows", "seconds", "size", "tokens", "users",
+const COUNT_WORDS: [&str; 16] = [
+    "bps", "bytes", "count", "items", "keys", "length", "models", "pages", "points", "quantity",
+    "qty", "rows", "seconds", "size", "tokens", "users",
 ];
 const GO_SKIP: [&str; 6] = [
     "libs/go/money",
@@ -57,7 +57,7 @@ fn re(pattern: &str) -> Regex {
 
 static CENTS: LazyLock<Regex> = LazyLock::new(|| re(r"(?i)cents"));
 static TS_FIELD: LazyLock<Regex> =
-    LazyLock::new(|| re(r"(?i)\b([a-z_][a-z0-9_]*)\s*\??\s*:\s*(number\b|-?[0-9])"));
+    LazyLock::new(|| re(r"(?i)\b([a-z_][a-z0-9_]*)\s*\??\s*:\s*(number\b|-?[0-9][0-9a-z_]*)"));
 static DISPLAY_ONLY: LazyLock<Regex> = LazyLock::new(|| re(r"(?m)^// lint:money-allow: \S"));
 
 pub fn check(ctx: &Ctx<'_>) -> Result<Vec<Finding>> {
@@ -248,6 +248,10 @@ fn typescript_text(source: &str) -> Vec<(usize, String)> {
         }
         for m in TS_FIELD.captures_iter(line) {
             let name = &m[1];
+            // A literal that ends in `n` is a BigInt, which holds base units exactly.
+            if m[2].ends_with('n') {
+                continue;
+            }
             if is_money_name(name) || CENTS.is_match(name) {
                 out.push((
                     i + 1,
@@ -287,6 +291,13 @@ mod tests {
             1
         );
         assert_eq!(typescript_text("// price: 12\n").len(), 0);
+        assert_eq!(typescript_text("const a = { price: 5_000n };\n").len(), 0);
+        assert_eq!(typescript_text("const a = { price: -0x10n };\n").len(), 0);
+        assert_eq!(typescript_text("const a = { price: 5_000 };\n").len(), 1);
+        assert_eq!(
+            typescript_text("const a = { fee_rate_bps: 50 };\n").len(),
+            0
+        );
         assert_eq!(typescript_text("const a = { total_count: 12 };\n").len(), 0);
         assert_eq!(
             typescript_text("// lint:money-allow: a chart\nconst a = { price: 12 };\n").len(),
