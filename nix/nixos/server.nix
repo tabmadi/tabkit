@@ -22,6 +22,18 @@ in
       default = "30d";
       description = "How long the garbage collection keeps an old system generation, so a rollback can reach it.";
     };
+    diskHealth = {
+      enable = mkOption {
+        type = types.bool;
+        default = false;
+        description = "Whether smartd watches each disk and an exporter publishes the SMART and RAID state.";
+      };
+      exporterAddress = mkOption {
+        type = types.str;
+        default = "127.0.0.1";
+        description = "The address of the SMART exporter.";
+      };
+    };
   };
 
   config = lib.mkIf cfg.enable {
@@ -53,6 +65,12 @@ in
       automatic = true;
       dates = "weekly";
       options = "--delete-older-than ${cfg.keepGenerations}";
+    };
+
+    services.smartd.enable = lib.mkIf cfg.diskHealth.enable true;
+    services.prometheus.exporters.smartctl = lib.mkIf cfg.diskHealth.enable {
+      enable = true;
+      listenAddress = cfg.diskHealth.exporterAddress;
     };
   };
 }

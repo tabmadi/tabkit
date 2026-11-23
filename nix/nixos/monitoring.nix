@@ -37,6 +37,26 @@ let
                 runbook = "${cfg.runbookBase}/disk-full.md";
               };
             }
+            {
+              alert = "RaidDegraded";
+              expr = ''node_md_disks{state="failed"} > 0 or node_md_disks_required - ignoring(state) node_md_disks{state="active"} > 0'';
+              "for" = "5m";
+              labels.severity = "critical";
+              annotations = {
+                summary = "The array {{ $labels.device }} on {{ $labels.instance }} has lost a disk.";
+                runbook = "${cfg.runbookBase}/disk-failed.md";
+              };
+            }
+            {
+              alert = "DiskSmartFailing";
+              expr = "smartctl_device_smart_status == 0";
+              "for" = "5m";
+              labels.severity = "critical";
+              annotations = {
+                summary = "The disk {{ $labels.device }} on {{ $labels.instance }} reports a SMART failure.";
+                runbook = "${cfg.runbookBase}/disk-failed.md";
+              };
+            }
           ];
         }
       ];
