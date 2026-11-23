@@ -103,4 +103,4 @@ services/orders/migrations/1_a.sql: sql/pii-tag: orders:t.note is tagged pii:bog
 services/orders/openapi.yaml: api/prefixes: routes `shared` at the edge but its spec has no /shared path
 services/orders/openapi.yaml:10: money/spec: `price` is a monetary property but is type: number, not $ref: Money
 test/e2e: service/node-scope: missing test/e2e/package.json
-✗ 103 findings in 42 files. `tabkit rules` explains each rule
+✗ 105 findings in 42 files. `tabkit rules` explains each rule
