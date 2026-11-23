@@ -124,9 +124,9 @@ in
         default = "snapshot";
         description = "The role of the cert auth method. Its policy reads only sys/storage/raft/snapshot.";
       };
-      ageRecipients = mkOption {
-        type = types.nonEmptyListOf types.str;
-        description = "The age public keys that can decrypt a snapshot. No key of these lives on the machine.";
+      ageRecipientsFile = mkOption {
+        type = types.path;
+        description = "A file of age public keys that can decrypt a snapshot. No matching private key lives on the machine.";
       };
       keep = mkOption {
         type = types.ints.positive;
@@ -243,7 +243,7 @@ in
             dir=/var/lib/openbao-snapshots
             SNAPSHOT_FILE="$dir/snapshot-$(date -u +%Y%m%dT%H%M%SZ).snap.age"
             export SNAPSHOT_FILE
-            age ${lib.concatMapStringsSep " " (r: "-r ${lib.escapeShellArg r}") snapshot.ageRecipients} \
+            age -R ${snapshot.ageRecipientsFile} \
               -o "$SNAPSHOT_FILE.tmp" "$plain"
             mv "$SNAPSHOT_FILE.tmp" "$SNAPSHOT_FILE"
             ${snapshot.upload}

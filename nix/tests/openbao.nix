@@ -59,7 +59,7 @@ pkgs.testers.runNixOSTest {
           caFile = "${material}/ca.crt";
           clientCertificate = "${material}/snapshot.crt";
           clientKeyFile = "/run/test/snapshot.key";
-          ageRecipients = [ (pkgs.lib.fileContents "${material}/age.pub") ];
+          ageRecipientsFile = "${material}/age.pub";
           keep = 2;
         };
       };
