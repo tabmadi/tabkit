@@ -69,7 +69,9 @@
           microvm-host = microvmHost;
           nix-cache = nixCache;
           openbao = ./nix/nixos/openbao.nix;
+          monitoring = ./nix/nixos/monitoring.nix;
           postgres = ./nix/nixos/postgres.nix;
+          temporal = ./nix/nixos/temporal.nix;
         };
 
         # The checks of the modules live here, not in the module that every repo imports. The nixosTests boot VMs.
@@ -209,6 +211,15 @@
               nix-cache = import ./nix/tests/nix-cache.nix {
                 inherit pkgs;
                 module = nixCache;
+              };
+              monitoring = import ./nix/tests/monitoring.nix {
+                inherit pkgs;
+                module = ./nix/nixos/monitoring.nix;
+              };
+              temporal = import ./nix/tests/temporal.nix {
+                inherit pkgs;
+                module = ./nix/nixos/temporal.nix;
+                postgres = ./nix/nixos/postgres.nix;
               };
               openbao = import ./nix/tests/openbao.nix {
                 inherit pkgs;

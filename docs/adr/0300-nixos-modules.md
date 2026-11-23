@@ -33,6 +33,10 @@ A module that guards a trust boundary must prove that it refuses what it must re
 
 **OpenBao is `nixosModules.openbao`.** It runs on Raft storage with TLS 1.3 and a file audit log. A timer signs in with a client certificate and writes a snapshot that age encrypts. The nixosTest restores a deleted secret from that snapshot.
 
+**Temporal is `nixosModules.temporal`.** A oneshot unit creates or upgrades both schemas on PostgreSQL before the server starts. Every database connection verifies TLS.
+
+**Monitoring is `nixosModules.monitoring`.** Prometheus and Alertmanager listen on the loopback address only. The module holds the base alerts of a server, and a repo adds its own jobs and rules.
+
 | Option, under `tabkit.mtlsGate.<name>` | Sets |
 | --- | --- |
 | `address` and `port` | Where the gate listens |
