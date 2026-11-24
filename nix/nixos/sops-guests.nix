@@ -23,8 +23,9 @@ let
         default = [ ];
         description = "The encrypted files that this guest's secrets come from. A change in one restarts the guest.";
       };
+      # Lazy, because a placeholder of sops-nix depends on the list of templates that these names create.
       files = mkOption {
-        type = types.attrsOf types.str;
+        type = types.lazyAttrsOf types.str;
         default = { };
         example = {
           "app.env" = "TOKEN=<a sops placeholder>\n";
