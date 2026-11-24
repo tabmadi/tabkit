@@ -80,7 +80,8 @@ stop() {
   printf 'system_powerdown\n' | socat - "UNIX-CONNECT:$monitor" >/dev/null
   while kill -0 "$pid" 2>/dev/null; do
     tries=$((tries + 1))
-    if [ "$tries" -gt 60 ]; then
+    # A host stops each guest first, and a guest can take minutes.
+    if [ "$tries" -gt 180 ]; then
       kill "$pid"
       break
     fi
