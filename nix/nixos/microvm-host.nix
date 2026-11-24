@@ -209,9 +209,13 @@ let
       networking.firewall.extraInputRules = lib.concatStringsSep "\n" (
         [ "ip saddr ${cfg.gateway} tcp dport 22 accept" ]
         ++ map (f: "ip saddr ${address f.from} ${f.protocol} dport ${ports f.ports} accept") inbound
-        ++ lib.optional (
-          guest.publish != [ ]
-        ) "${sourceMatch guest.publishSources}tcp dport ${ports guest.publish} accept"
+        # The hairpin NAT of the host rewrites the source of a guest that calls a published port to the gateway.
+        # The forward chain has already checked that connection against the flows.
+        ++
+          lib.optional (guest.publish != [ ])
+            "${
+              sourceMatch (lib.optionals (guest.publishSources != [ ]) (guest.publishSources ++ [ cfg.gateway ]))
+            }tcp dport ${ports guest.publish} accept"
       );
 
       services.timesyncd.servers = [ cfg.gateway ];
