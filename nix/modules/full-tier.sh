@@ -13,7 +13,7 @@ running() {
   [ -f "$pidfile" ] || return 1
   local pid
   pid=$(cat "$pidfile")
-  [ -r "/proc/$pid/cmdline" ] && tr '\0' ' ' <"/proc/$pid/cmdline" | grep -qF "$state/disk-a.qcow2"
+  [ -r "/proc/$pid/cmdline" ] && tr '\0' ' ' <"/proc/$pid/cmdline" | grep -qF "$state/disk-"
 }
 
 # A start needs free memory and disk, so it cannot push another workload of the machine out of memory.
