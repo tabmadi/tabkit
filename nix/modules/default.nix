@@ -96,7 +96,7 @@ in
           data = {
             enable = true;
             name = "dprint";
-            entry = "${dprint}/bin/dprint check";
+            entry = "${dprint}/bin/dprint check --allow-no-files";
             files = "\\.(jsonc?|toml|ya?ml)$";
           };
           nix = {
