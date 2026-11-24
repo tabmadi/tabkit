@@ -66,6 +66,9 @@
             ;
         };
 
+        # A repo that builds with its own bun2nix keeps the same Linux-only fetch.
+        flake.lib.bunLinuxOnly = import ./nix/modules/bun-linux-only.nix;
+
         # The NixOS modules of ADR-0300 and ADR-0500. A repo imports one only on a machine that it runs.
         flake.nixosModules = {
           mtls-gate = ./nix/nixos/mtls-gate.nix;

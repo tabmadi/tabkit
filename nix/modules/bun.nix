@@ -17,20 +17,7 @@ in
       cfg = config.tabkit.bun;
       bun2nix = localInputs.bun2nix.packages.${system}.default;
 
-      # bun.nix lists the native packages of every platform, and a fetch downloads each one. Linux is the one
-      # supported platform, per ADR-0100, and Bun skips an optional package of another platform on install.
-      foreignPlatform =
-        name:
-        builtins.match ".*(^|[-/@])(darwin|win32|freebsd|openbsd|netbsd|sunos|android|aix)([-@].*|$)" name
-        != null;
-      linuxOnly =
-        bunNix:
-        let
-          original = import bunNix;
-        in
-        lib.setFunctionArgs (args: lib.filterAttrs (name: _: !foreignPlatform name) (original args)) (
-          lib.functionArgs original
-        );
+      linuxOnly = import ./bun-linux-only.nix lib;
 
       # The hook of bun2nix brings the Bun of its own nixpkgs. A check runs the Bun of the dev shell, so it takes that one.
       hook = bun2nix.hook.overrideAttrs (old: {
