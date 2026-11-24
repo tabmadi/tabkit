@@ -100,7 +100,7 @@ install_host() {
   iso=$(find "$installer/iso" -name '*.iso' -print -quit)
   start "$iso"
   wait_ssh
-  local extra
+  # Not local: the EXIT trap runs after this function returns.
   extra=$(mktemp -d)
   trap 'rm -rf "$extra"' EXIT
   if [ -n "${FULL_TIER_HOST_KEY:-}" ]; then
