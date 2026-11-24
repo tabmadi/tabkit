@@ -38,7 +38,15 @@ let
         diskSize = mkOption {
           type = types.ints.positive;
           default = 40;
-          description = "The size of each of the two disks, in GiB.";
+          description = "The size of each disk, in GiB.";
+        };
+        disks = mkOption {
+          type = types.enum [
+            1
+            2
+          ];
+          default = 2;
+          description = "The number of disks: two for a mirrored host, one for a host with a single disk.";
         };
         minFreeMemory = mkOption {
           type = types.ints.positive;
@@ -136,6 +144,7 @@ let
         export FULL_TIER_CPUS=${toString tier.cpus}
         export FULL_TIER_MEMORY_MIB=${toString tier.memory}
         export FULL_TIER_DISK_GIB=${toString tier.diskSize}
+        export FULL_TIER_DISKS=${if tier.disks == 2 then "'a b'" else "a"}
         export FULL_TIER_MIN_MEMORY_GIB=''${FULL_TIER_MIN_MEMORY_GIB:-${toString tier.minFreeMemory}}
         export FULL_TIER_MIN_DISK_GIB=''${FULL_TIER_MIN_DISK_GIB:-${toString tier.minFreeDisk}}
         export FULL_TIER_SSH_PORT=${toString tier.sshPort}

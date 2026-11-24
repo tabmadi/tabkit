@@ -33,15 +33,16 @@ guard() {
 }
 
 # The disks argument is `a b`, `a`, or `b`, so a test can boot from one disk of the mirror.
+# FULL_TIER_NETDEV_EXTRA adds options to the user network, such as `restrict=on` or a `guestfwd` rule.
 start() {
-  local iso=${1:-} disks=${2:-a b}
+  local iso=${1:-} disks=${2:-$FULL_TIER_DISKS}
   if running; then
     echo "The full tier already runs." >&2
     exit 1
   fi
   guard
   local args=() disk
-  for disk in a b; do
+  for disk in $FULL_TIER_DISKS; do
     [ -f "$state/disk-$disk.qcow2" ] || qemu-img create -q -f qcow2 "$state/disk-$disk.qcow2" "${FULL_TIER_DISK_GIB}G"
   done
   for disk in $disks; do
@@ -51,7 +52,7 @@ start() {
   [ -n "$iso" ] && args+=(-cdrom "$iso" -boot order=dc)
   qemu-system-x86_64 -enable-kvm -cpu host -smp "$FULL_TIER_CPUS" -m "$FULL_TIER_MEMORY_MIB" \
     "${args[@]}" \
-    -netdev "user,id=net0,$FULL_TIER_FORWARDS" \
+    -netdev "user,id=net0,$FULL_TIER_FORWARDS${FULL_TIER_NETDEV_EXTRA:+,$FULL_TIER_NETDEV_EXTRA}" \
     -device "virtio-net-pci,netdev=net0,mac=$FULL_TIER_MAC" \
     -display none -daemonize -pidfile "$pidfile" \
     -serial "file:$state/serial.log" -monitor "unix:$monitor,server,nowait"
@@ -109,11 +110,13 @@ install_host() {
     install -m 0600 "$FULL_TIER_HOST_KEY" "$extra/etc/ssh/ssh_host_ed25519_key"
     ssh-keygen -y -f "$extra/etc/ssh/ssh_host_ed25519_key" >"$extra/etc/ssh/ssh_host_ed25519_key.pub"
   fi
-  local identity=()
+  # FULL_TIER_INSTALL_FLAGS adds flags to nixos-anywhere, such as `--no-substitute-on-destination`.
+  local identity=() flags=()
+  read -r -a flags <<<"${FULL_TIER_INSTALL_FLAGS:-}"
   if [ -n "${FULL_TIER_SSH_KEY:-}" ]; then
     identity=(-i "$FULL_TIER_SSH_KEY")
   fi
-  nixos-anywhere --flake ".#$FULL_TIER_CONFIGURATION" --phases disko,install --extra-files "$extra" \
+  nixos-anywhere --flake ".#$FULL_TIER_CONFIGURATION" --phases disko,install --extra-files "$extra" "${flags[@]}" \
     "${identity[@]}" --ssh-port "$FULL_TIER_SSH_PORT" \
     --ssh-option StrictHostKeyChecking=no --ssh-option UserKnownHostsFile=/dev/null \
     --target-host root@127.0.0.1
@@ -123,7 +126,7 @@ install_host() {
 }
 
 case ${1:-} in
-start) start "" "${2:-a b}" ;;
+start) start "" "${2:-$FULL_TIER_DISKS}" ;;
 stop) stop ;;
 install) install_host ;;
 deploy)
@@ -143,7 +146,7 @@ destroy)
   rm -f "$state/disk-a.qcow2" "$state/disk-b.qcow2" "$state/serial.log"
   ;;
 *)
-  echo "Use one of: start [a|b], stop, install, deploy, ssh, status, destroy." >&2
+  echo "Use one of: start [a|b|a b], stop, install, deploy, ssh, status, destroy." >&2
   exit 2
   ;;
 esac
