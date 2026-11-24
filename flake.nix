@@ -273,6 +273,7 @@
             packages = {
               default = tabkitPackage;
               tabkit-platform = tabkitPlatform;
+              tabkit-labels = import ./nix/modules/labels.nix { inherit pkgs; };
             }
             // lib.optionalAttrs pkgs.stdenv.hostPlatform.isLinux {
               nested-microvm-host = import ./nix/tests/microvm-host.nix {

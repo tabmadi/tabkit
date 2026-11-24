@@ -10,7 +10,7 @@
     "The nix manager and the weekly lock file maintenance keep flake.lock current. The cargo manager keeps the crates current."
   ],
   "labels": [
-    "dependencies"
+    "kind/dependencies"
   ],
   "rangeStrategy": "pin",
   "separateMajorMinor": true,

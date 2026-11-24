@@ -233,6 +233,7 @@ in
             pkgs.nixfmt
             (import ./nix-cache-push.nix { inherit pkgs; })
             commitRange
+            (import ./labels.nix { inherit pkgs; })
           ]
           ++ lib.optional cfg.rules.enable cfg.rules.package
           ++ cfg.packages;

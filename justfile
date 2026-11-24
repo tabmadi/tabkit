@@ -79,6 +79,10 @@ cache-push: in-shell
 test-nested:
     if [ -n "${CI:-}" ]; then echo "GitHub CI skips the nested microVM test, per ADR-0500."; elif [ -w /dev/kvm ]; then nix build .#nested-microvm-host --no-link --print-build-logs; else echo "The nested microVM test needs KVM. It did not run." >&2; exit 1; fi
 
+# Make the labels of the forge match .github/labels.yml. It deletes every other label
+labels: in-shell
+    nix run .#tabkit-labels -- --prune
+
 # Run Renovate over this repository, per ADR-0102. The renovate workflow calls it
 ci-renovate: in-shell
     nix run --inputs-from . nixpkgs#renovate
