@@ -10,6 +10,8 @@ let
 
   cfg = config.tabkit.cloudflareOrigin;
   sources = cfg.ranges.ipv4 ++ cfg.ranges.ipv6 ++ cfg.extraSources;
+  ipv6 = builtins.filter (lib.hasInfix ":") sources;
+  ipv4 = builtins.filter (s: !lib.hasInfix ":" s) sources;
 in
 {
   options.tabkit.cloudflareOrigin = {
@@ -105,6 +107,14 @@ in
       "origin.key:${cfg.keyFile}"
     ];
 
-    networking.firewall.allowedTCPPorts = [ 443 ];
+    # Port 443 accepts only the proxy sources, before nginx checks them again.
+    networking.nftables.enable = true;
+    networking.firewall.extraInputRules =
+      lib.optionalString (
+        ipv4 != [ ]
+      ) "ip saddr { ${lib.concatStringsSep ", " ipv4} } tcp dport 443 accept\n"
+      + lib.optionalString (
+        ipv6 != [ ]
+      ) "ip6 saddr { ${lib.concatStringsSep ", " ipv6} } tcp dport 443 accept\n";
   };
 }

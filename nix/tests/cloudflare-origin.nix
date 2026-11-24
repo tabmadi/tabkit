@@ -82,9 +82,8 @@ pkgs.testers.runNixOSTest {
           out = allowed.succeed("${curl} -f -H 'X-Real-IP: 203.0.113.7' https://origin.test/")
           assert out.strip() == "${nodes.allowed.networking.primaryIPAddress}", out
 
-      with subtest("Any other source is refused"):
-          code = denied.succeed("${curl} -o /dev/null -w '%{http_code}' https://origin.test/")
-          assert code.strip() == "403", code
+      with subtest("The firewall refuses any other source before nginx"):
+          denied.fail("${curl} --connect-timeout 5 -o /dev/null https://origin.test/")
 
       with subtest("The upstream is closed from beyond the machine"):
           allowed.fail("curl -sf --connect-timeout 5 http://origin:3000/")

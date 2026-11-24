@@ -39,6 +39,19 @@ let
     ) cfg.guests.${name}.publish
   ) names;
 
+  # NixOS accepts every forwarded connection before the rules above. This chain runs first and drops a published
+  # port from a source outside its ranges, so the host itself enforces publishSources.
+  publishDrops = lib.concatMap (
+    name:
+    let
+      guest = cfg.guests.${name};
+    in
+    lib.optional (guest.publish != [ ] && guest.publishSources != [ ])
+      "ip daddr ${address name} tcp dport ${ports guest.publish} ct status dnat ip saddr != { ${
+        lib.concatStringsSep ", " (guest.publishSources ++ [ cfg.gateway ])
+      } } drop"
+  ) names;
+
   egressRule = lib.optionalString (cfg.uplink != null && egressGuests != [ ]) ''
     iifname { ${
       lib.concatMapStringsSep ", " (n: ''"${tap n}"'') egressGuests
@@ -351,6 +364,16 @@ in
           proto = "tcp";
         }) cfg.guests.${name}.publish
       ) names;
+    };
+
+    networking.nftables.tables.tabkit-publish = lib.mkIf (publishDrops != [ ]) {
+      family = "inet";
+      content = ''
+        chain forward {
+          type filter hook forward priority -1; policy accept;
+          ${lib.concatStringsSep "\n" publishDrops}
+        }
+      '';
     };
 
     networking.firewall = {

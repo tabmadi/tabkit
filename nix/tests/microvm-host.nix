@@ -61,10 +61,16 @@ pkgs.testers.runNixOSTest {
             egress = true;
             publish = [ 7071 ];
             publishSources = [ "203.0.113.0/24" ];
-            config = web "a" [
-              7070
-              7071
-            ];
+            # The guest opens the port to every source, so only the host can refuse one.
+            config = {
+              imports = [
+                (web "a" [
+                  7070
+                  7071
+                ])
+              ];
+              networking.firewall.allowedTCPPorts = [ 7071 ];
+            };
           };
           b = {
             address = "10.20.0.20";
