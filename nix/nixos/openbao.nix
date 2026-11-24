@@ -248,7 +248,7 @@ in
             mv "$SNAPSHOT_FILE.tmp" "$SNAPSHOT_FILE"
             ${snapshot.upload}
 
-            find "$dir" -maxdepth 1 -name 'snapshot-*.snap.age' -printf '%f\n' | sort -r \
+            find -H "$dir" -maxdepth 1 -name 'snapshot-*.snap.age' -printf '%f\n' | sort -r \
               | tail -n +${toString (snapshot.keep + 1)} | while read -r old; do rm -f "$dir/$old"; done
           '';
         };
