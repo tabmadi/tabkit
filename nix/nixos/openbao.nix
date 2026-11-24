@@ -173,7 +173,10 @@ in
             LoadCredential = [ "server.key:${cfg.tls.keyFile}" ];
             DynamicUser = true;
             User = "openbao";
-            StateDirectory = "openbao";
+            StateDirectory = [
+              "openbao"
+              "openbao/data"
+            ];
             StateDirectoryMode = "0700";
             LogsDirectory = "openbao";
             LogsDirectoryMode = "0700";
