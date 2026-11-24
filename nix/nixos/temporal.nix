@@ -128,7 +128,7 @@ in
       host = mkOption {
         type = types.str;
         example = "10.20.0.20";
-        description = "The address of PostgreSQL.";
+        description = "The address of PostgreSQL. The schema tool verifies it, so the server certificate names it.";
       };
       port = mkOption {
         type = types.port;

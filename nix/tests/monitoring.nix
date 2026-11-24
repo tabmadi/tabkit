@@ -71,7 +71,7 @@ pkgs.testers.runNixOSTest {
 
     with subtest("The target is up, with the environment label"):
         server.wait_until_succeeds(
-            "curl -sf 'http://127.0.0.1:9090/api/v1/query?query=up{job=\"node\"}' | jq -e '.data.result[0].value[1] == \"1\"'",
+            "curl -gsf 'http://127.0.0.1:9090/api/v1/query?query=up{job=\"node\"}' | jq -e '.data.result[0].value[1] == \"1\"'",
             timeout=60,
         )
         server.succeed("curl -sf http://127.0.0.1:9090/api/v1/status/config | grep -q 'env: test'")

@@ -8,8 +8,8 @@
 let
   tls = pkgs.runCommand "temporal-test-tls" { nativeBuildInputs = [ pkgs.openssl ]; } ''
     mkdir $out
-    openssl req -x509 -newkey ed25519 -nodes -days 3650 -subj /CN=db \
-      -addext subjectAltName=DNS:db -keyout $out/server.key -out $out/server.crt
+    openssl req -x509 -newkey ec -pkeyopt ec_paramgen_curve:P-256 -nodes -days 3650 -subj /CN=db \
+      -addext subjectAltName=DNS:db,IP:192.168.1.1 -keyout $out/server.key -out $out/server.crt
   '';
 in
 pkgs.testers.runNixOSTest {
