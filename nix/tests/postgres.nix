@@ -4,7 +4,7 @@
 let
   tls = pkgs.runCommand "postgres-test-tls" { nativeBuildInputs = [ pkgs.openssl ]; } ''
     mkdir $out
-    openssl req -x509 -newkey ed25519 -nodes -days 3650 -subj /CN=server \
+    openssl req -x509 -newkey ec -pkeyopt ec_paramgen_curve:P-256 -nodes -days 3650 -subj /CN=server \
       -addext subjectAltName=DNS:server -keyout $out/server.key -out $out/server.crt
   '';
   psql = "${pkgs.postgresql_19}/bin/psql";
@@ -46,7 +46,7 @@ pkgs.testers.runNixOSTest {
         };
       };
 
-    client = { };
+    client.networking.enableIPv6 = false;
   };
 
   testScript = ''

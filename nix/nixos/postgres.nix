@@ -11,6 +11,24 @@ let
 
   cfg = config.tabkit.postgres;
   backup = cfg.backup;
+
+  # The release 2.60.1 refuses the final catalog of PostgreSQL 19. Retest: drop this pin at the next pgBackRest release.
+  pgbackrestForPostgres19 = pkgs.pgbackrest.overrideAttrs (old: {
+    buildInputs = old.buildInputs ++ [ pkgs.systemdLibs ];
+    # The source tree holds its own `build` folder.
+    mesonBuildDir = "_build";
+    nativeBuildInputs = old.nativeBuildInputs ++ [
+      (pkgs.python3.withPackages (python: [ python.pyyaml ]))
+    ];
+    postPatch = "patchShebangs --build build";
+    version = "2.60.1-unstable-2026-11-20";
+    src = pkgs.fetchFromGitHub {
+      owner = "pgbackrest";
+      repo = "pgbackrest";
+      rev = "228203e595484966c8c042ceb8e52346fb634e88";
+      hash = "sha256-7/NH3DNAchBLeqk7NDF48nNzOPqc3uWiqnBXSxMBOYE=";
+    };
+  });
   dataDir = config.services.postgresql.dataDir;
   logPath = "/var/log/pgbackrest";
   lockPath = "/run/pgbackrest";
@@ -112,8 +130,8 @@ in
       };
       package = mkOption {
         type = types.package;
-        default = pkgs.pgbackrest;
-        defaultText = lib.literalExpression "pkgs.pgbackrest";
+        default = pgbackrestForPostgres19;
+        defaultText = lib.literalMD "pgBackRest at the commit that knows the final catalog of PostgreSQL 19";
         description = "The pgBackRest package.";
       };
       stanza = mkOption {
@@ -242,6 +260,9 @@ in
           archive_mode = "on";
           archive_command = "${command} archive-push %p";
         };
+
+        # A restored cluster calls `pgbackrest` by name in its restore command.
+        systemd.services.postgresql.path = [ backup.package ];
 
         # The archive command runs inside the sandbox of PostgreSQL.
         systemd.services.postgresql.serviceConfig = {
