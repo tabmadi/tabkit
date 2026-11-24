@@ -206,12 +206,15 @@ in
         DynamicUser = true;
         PrivateTmp = true;
         EnvironmentFile = cfg.environmentFile;
-        Restart = "on-failure";
-        RestartSec = 10;
+        # A restart of this unit would fail the server that requires it, so the script waits instead.
+        TimeoutStartSec = "15min";
       };
       script = ''
         export SQL_PASSWORD=$POSTGRES_PWD PGPASSWORD=$POSTGRES_PWD
         for database in ${db.name} ${db.visibilityName}; do
+          until psql "host=${db.serverName} hostaddr=${db.host} port=${toString db.port} dbname=$database user=${db.user} sslmode=verify-full sslrootcert=${db.caFile}" -c 'select 1' >/dev/null 2>&1; do
+            sleep 5
+          done
           exists=$(psql "host=${db.serverName} hostaddr=${db.host} port=${toString db.port} dbname=$database user=${db.user} sslmode=verify-full sslrootcert=${db.caFile}" \
             -tAc "select to_regclass('public.schema_version') is not null")
           if [ "$exists" != t ]; then
