@@ -134,6 +134,17 @@ in
         default = true;
         description = "Whether Alertmanager refuses an SMTP server without STARTTLS.";
       };
+      authUsername = mkOption {
+        type = types.nullOr types.str;
+        default = null;
+        description = "The SMTP login of Alertmanager. Null sends without a login.";
+      };
+      authPasswordFile = mkOption {
+        type = types.nullOr types.str;
+        default = null;
+        example = "/run/secrets/smtp-password";
+        description = "A file with the SMTP password, as a path at run time outside the Nix store.";
+      };
     };
     environmentFile = mkOption {
       type = types.nullOr types.str;
@@ -147,7 +158,11 @@ in
     assertions = [
       {
         assertion = lib.all (p: p == null || !lib.hasPrefix builtins.storeDir p) (
-          [ cfg.environmentFile ] ++ builtins.attrValues cfg.credentials
+          [
+            cfg.environmentFile
+            cfg.mail.authPasswordFile
+          ]
+          ++ builtins.attrValues cfg.credentials
         );
         message = "tabkit.monitoring: a secret is a path at run time, outside the Nix store.";
       }
@@ -176,6 +191,12 @@ in
             smtp_smarthost = cfg.mail.smarthost;
             smtp_from = cfg.mail.from;
             smtp_require_tls = cfg.mail.requireTls;
+          }
+          // lib.optionalAttrs (cfg.mail.authUsername != null) {
+            smtp_auth_username = cfg.mail.authUsername;
+          }
+          // lib.optionalAttrs (cfg.mail.authPasswordFile != null) {
+            smtp_auth_password_file = "/run/credentials/alertmanager.service/smtp-password";
           };
           route = {
             receiver = "operators";
@@ -201,6 +222,11 @@ in
         };
       };
     };
+
+    # Alertmanager reads the password as its own user, so systemd hands over a copy.
+    systemd.services.alertmanager.serviceConfig.LoadCredential = lib.mkIf (
+      cfg.mail.authPasswordFile != null
+    ) [ "smtp-password:${cfg.mail.authPasswordFile}" ];
 
     systemd.services.prometheus.serviceConfig.LoadCredential = lib.mapAttrsToList (
       name: path: "${name}:${path}"

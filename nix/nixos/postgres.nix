@@ -1,4 +1,4 @@
-# PostgreSQL for one machine, per ADR-0300: TLS and SCRAM on every network connection, roles from a secret at run
+# PostgreSQL for one machine, per ADR-0300: SCRAM on every network connection, with TLS where the network is shared, roles from a secret at run
 # time, and continuous WAL archiving with a scheduled full backup through pgBackRest.
 {
   config,
@@ -33,6 +33,8 @@ let
   logPath = "/var/log/pgbackrest";
   lockPath = "/run/pgbackrest";
   pgbackrest = "${backup.package}/bin/pgbackrest";
+  # The node exporter publishes the files of this folder, so an alert sees the age of the newest full backup.
+  metricsDir = "/var/lib/tabkit-metrics";
   command = "${pgbackrest} --stanza=${backup.stanza}";
 
   repositoryPath =
@@ -57,6 +59,14 @@ let
     };
   };
 
+  # Writes the stop time of the newest full backup as a metric. It writes nothing before the first full backup.
+  recordBackup = pkgs.writeShellScript "tabkit-postgres-backup-metric" ''
+    set -euo pipefail
+    stop=$(${command} info --output=json | ${pkgs.jq}/bin/jq '[.[0].backup[]? | select(.type == "full") | .timestamp.stop] | max // empty')
+    [ -n "$stop" ] || exit 0
+    printf 'pgbackrest_last_full_backup_timestamp_seconds %s\n' "$stop" > ${metricsDir}/pgbackrest.prom.tmp
+    mv ${metricsDir}/pgbackrest.prom.tmp ${metricsDir}/pgbackrest.prom
+  '';
   # A unit of pgBackRest reads the credentials of the repository, and only those.
   backupService = {
     after = [ "postgresql.service" ];
@@ -100,16 +110,24 @@ in
       default = false;
       description = "Whether the input firewall opens the port to the clients only.";
     };
-    tls = {
-      certificate = mkOption {
-        type = types.path;
-        description = "The public certificate of the server.";
-      };
-      keyFile = mkOption {
-        type = types.str;
-        example = "/run/secrets/postgres.key";
-        description = "The private key of the server, as a path at run time outside the Nix store.";
-      };
+    tls = mkOption {
+      type = types.nullOr (
+        types.submodule {
+          options = {
+            certificate = mkOption {
+              type = types.path;
+              description = "The public certificate of the server.";
+            };
+            keyFile = mkOption {
+              type = types.str;
+              example = "/run/secrets/postgres.key";
+              description = "The private key of the server, as a path at run time outside the Nix store.";
+            };
+          };
+        }
+      );
+      default = null;
+      description = "TLS for client connections. Null fits only a private link that no other machine shares, such as a host-only network of guests.";
     };
     rolesFile = mkOption {
       type = types.nullOr types.str;
@@ -180,7 +198,7 @@ in
         assertions = [
           {
             assertion = lib.all (p: p == null || !lib.hasPrefix builtins.storeDir p) [
-              cfg.tls.keyFile
+              (if cfg.tls == null then null else cfg.tls.keyFile)
               cfg.rolesFile
               backup.environmentFile
             ];
@@ -198,10 +216,6 @@ in
           enableTCPIP = true;
           settings = {
             listen_addresses = lib.mkForce "localhost,${cfg.address}";
-            ssl = true;
-            ssl_cert_file = "${cfg.tls.certificate}";
-            ssl_key_file = "/run/credentials/postgresql.service/server.key";
-            ssl_min_protocol_version = "TLSv1.3";
             password_encryption = "scram-sha-256";
             wal_level = "replica";
             max_wal_senders = lib.mkDefault 3;
@@ -212,12 +226,25 @@ in
               local all all scram-sha-256
               host all all 127.0.0.1/32 scram-sha-256
             ''
-            + lib.concatMapStrings (client: "hostssl all all ${client} scram-sha-256\n") cfg.clients
+            + lib.concatMapStrings (
+              client: "${if cfg.tls == null then "host" else "hostssl"} all all ${client} scram-sha-256\n"
+            ) cfg.clients
           );
         };
+      }
 
+      (lib.mkIf (cfg.tls != null) {
+        services.postgresql.settings = {
+          ssl = true;
+          ssl_cert_file = "${cfg.tls.certificate}";
+          ssl_key_file = "/run/credentials/postgresql.service/server.key";
+          ssl_min_protocol_version = "TLSv1.3";
+        };
         # PostgreSQL reads its key as its own user, so systemd hands over a copy.
         systemd.services.postgresql.serviceConfig.LoadCredential = [ "server.key:${cfg.tls.keyFile}" ];
+      })
+
+      {
 
         systemd.services.tabkit-postgres-setup = {
           description = "Create the roles, the databases, and the grants";
@@ -253,12 +280,18 @@ in
         systemd.tmpfiles.rules = [
           "d ${logPath} 0750 postgres postgres -"
           "d ${lockPath} 0750 postgres postgres -"
+          "d ${metricsDir} 0755 postgres postgres -"
         ]
         ++ map (path: "d ${path} 0750 postgres postgres -") repositoryPath;
 
         services.postgresql.settings = {
           archive_mode = "on";
           archive_command = "${command} archive-push %p";
+        };
+
+        services.prometheus.exporters.node = {
+          enabledCollectors = [ "textfile" ];
+          extraFlags = [ "--collector.textfile.directory=${metricsDir}" ];
         };
 
         # A restored cluster calls `pgbackrest` by name in its restore command.
@@ -283,6 +316,7 @@ in
           script = ''
             ${command} stanza-create
             ${command} check
+            ${recordBackup}
           '';
         };
 
@@ -290,7 +324,10 @@ in
           description = "Take a full pgBackRest backup";
           after = [ "tabkit-postgres-stanza.service" ];
           requires = [ "tabkit-postgres-stanza.service" ];
-          script = "${command} --type=full backup";
+          script = ''
+            ${command} --type=full backup
+            ${recordBackup}
+          '';
         };
 
         systemd.timers.tabkit-postgres-backup = {

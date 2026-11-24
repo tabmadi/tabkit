@@ -25,10 +25,14 @@ pkgs.testers.runNixOSTest {
       services.mailpit.instances.test = {
         listen = "127.0.0.1:8025";
         smtp = "127.0.0.1:1025";
+        # The SMTP server asks for a login, so the alert mail proves that Alertmanager sends one.
+        smtp-auth-accept-any = true;
+        smtp-auth-allow-insecure = true;
       };
       systemd.tmpfiles.rules = [
         "d /run/test 0755 root root -"
         "f /run/test/alerts.env 0444 root root - ALERT_EMAIL_TO=operator@example.com"
+        "f /run/test/smtp-password 0400 root root - test-password"
       ];
 
       tabkit.monitoring = {
@@ -41,6 +45,8 @@ pkgs.testers.runNixOSTest {
           smarthost = "127.0.0.1:1025";
           from = "alerts@example.com";
           requireTls = false;
+          authUsername = "alerts";
+          authPasswordFile = "/run/test/smtp-password";
         };
         scrapeConfigs = [
           {

@@ -82,6 +82,7 @@ pkgs.testers.runNixOSTest {
         server.succeed(local("create table rows (value text)"))
         server.succeed(local("insert into rows values ('in-backup')"))
         server.succeed("systemctl start tabkit-postgres-backup.service")
+        server.succeed("grep -q '^pgbackrest_last_full_backup_timestamp_seconds [0-9]' /var/lib/tabkit-metrics/pgbackrest.prom")
         server.succeed(local("insert into rows values ('in-wal')"))
         server.succeed(local("select pg_switch_wal()"))
         server.wait_until_succeeds(
