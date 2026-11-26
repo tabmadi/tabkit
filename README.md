@@ -60,6 +60,7 @@ tabkit has one maintainer. It is free to use under the Apache License 2.0, and i
 | `tabkit.hooks` | Adds hooks in the git-hooks.nix format. Each one is enabled |
 | `tabkit.compiler` | Puts a C compiler in the dev shell, for a cargo or cgo build |
 | `tabkit.env` | Sets environment variables in the dev shell, beside the ones that tabkit sets |
+| `tabkit.imageVersions` | Maps a Dockerfile `ARG`, such as `GO_VERSION`, to the version of the dev shell. The `image-versions` check fails on any other value |
 | `tabkit.rules.enable` | Turns tabkit on or off. The default is on |
 | `tabkit.rules.package` | Sets the tabkit binary |
 | `tabkit.check` | Read only. Makes a check from a name, a list of tools, and a command |

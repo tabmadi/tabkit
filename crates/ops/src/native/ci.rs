@@ -674,11 +674,7 @@ fn build_list(kind: &str, items: &[Value], sha: &str) -> Result<Vec<Build>> {
             let app = item.as_str().context("an item is not an app name")?;
             builds.push(Build {
                 name: app.to_string(),
-                context: if app == "admin" {
-                    "apps/admin".to_string()
-                } else {
-                    ".".to_string()
-                },
+                context: ".".to_string(),
                 file: format!("apps/{app}/Dockerfile"),
                 args: vec!["--build-arg".to_string(), format!("SERVICE_VERSION={sha}")],
             });
@@ -938,7 +934,7 @@ mod tests {
         assert_eq!(services[0].name, "orders-worker");
         assert!(services[0].args.contains(&"APP_CMD=worker".to_string()));
         let apps = build_list("apps", &[json!("admin"), json!("frontend")], "abc").unwrap();
-        assert_eq!(apps[0].context, "apps/admin");
-        assert_eq!(apps[1].context, ".");
+        assert!(apps.iter().all(|a| a.context == "."));
+        assert_eq!(apps[0].file, "apps/admin/Dockerfile");
     }
 }

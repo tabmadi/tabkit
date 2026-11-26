@@ -1107,7 +1107,7 @@ impl Cluster {
             );
         } else {
             println!(
-                "\n✓ cluster-up full: ArgoCD deploys from master.\n  Product:      https://{domain}:8443/api/<resource>/\n  Log in:       https://{domain}:8443/auth/login as {login}\n  Ops tier:     https://<name>.ops.{domain}:8443/ for argocd, grafana, hubble,\n                temporal, seaweedfs, lowdefy, headlamp, and pgweb, per ADR-0306\n  Frontend:     run it natively on :3000. The edge glue routes /auth and the\n                landing page to the host.\n  Diagnose:     just cluster-status\n  Break-glass:  kubectl port-forward with your kubeconfig, see docs/guide/break-glass.md\n  Teardown:     just cluster-stop to keep the cache, or cluster-down to delete"
+                "\n✓ cluster-up full: ArgoCD deploys from master.\n  Product:      https://{domain}:8443/api/<resource>/\n  Log in:       https://{domain}:8443/auth/login as {login}\n  Ops tier:     https://<name>.ops.{domain}:8443/ for argocd, grafana, hubble,\n                temporal, seaweedfs, admin, headlamp, and pgweb, per ADR-0306\n  Frontend:     run it natively on :3000. The edge glue routes /auth and the\n                landing page to the host.\n  Diagnose:     just cluster-status\n  Break-glass:  kubectl port-forward with your kubeconfig, see docs/guide/break-glass.md\n  Teardown:     just cluster-stop to keep the cache, or cluster-down to delete"
             );
         }
     }

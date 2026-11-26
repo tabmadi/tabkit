@@ -290,7 +290,7 @@ pub const RULES: &[(&str, &str)] = &[
         "service/workspace-copies",
         "Every workspace member is copied into the image build",
     ),
-    ("service/node-scope", "npm stays inside the Node workspace"),
+    ("service/node-scope", "Bun installs every workspace"),
     (
         "go/call-args",
         "A call has its arguments on one line, or one on each line",

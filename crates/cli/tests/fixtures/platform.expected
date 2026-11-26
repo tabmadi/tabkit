@@ -14,7 +14,8 @@ apps/frontend/src/styles/theme.css: frontend/contrast: dark: --muted does not re
 apps/frontend/src/styles/theme.css: frontend/contrast: light: --foreground on --background is 1.16:1, below 4.5:1, SC 1.4.3 normal text
 apps/frontend/src/styles/theme.css: frontend/contrast: light: --foreground on --card is 1.16:1, below 4.5:1, SC 1.4.3 normal text
 apps/frontend/src/styles/theme.css: frontend/contrast: light: --muted does not resolve to a colour
-apps/package-lock.json: service/node-scope: an npm lockfile outside test/e2e
+apps/package-lock.json: service/node-scope: a lockfile of another package manager. Bun installs every workspace
+apps/pnpm-lock.yaml: service/node-scope: a lockfile of another package manager. Bun installs every workspace
 docs/guide/same.md: docs/filename: another document under docs/ is also `same.md`
 docs/guide/same.md:3: docs/forbidden-link: links to `README.md`: a copy rewrites it
 docs/reference/same.md: docs/filename: another document under docs/ is also `same.md`
@@ -56,7 +57,6 @@ infra/observability/alerts/rules.yaml:6: alert/severity: BadSeverity has severit
 infra/project.yaml: project/identity: 1 files still carry `old.example`
 infra/talos/inventory/dev/nodes.yml: naming/resource: host `acmeco-dev-db`: `db` is not a role in the role table
 infra/talos/inventory/qa: naming/resource: `qa` is not an environment. Environments: dev, staging, prod
-package.json: service/node-scope: test/e2e is in the Bun workspace. It stays a Node island
 scripts/build.sh:2: helm/dependency-fallback: `helm dependency build` has no `update` fallback
 scripts/lib/ports.sh: service/ports: 8080 is reserved for the local edge. Choose another port
 scripts/lib/ports.sh: service/ports: billing has no cmd/server but registers a local port
@@ -102,5 +102,4 @@ services/orders/migrations/1_a.sql: sql/pii-tag: orders:t.email holds personal d
 services/orders/migrations/1_a.sql: sql/pii-tag: orders:t.note is tagged pii:bogus, which is not a class. Use one of: none, contact, name, identifier, government_id, financial, location, device, special_category, free_text
 services/orders/openapi.yaml: api/prefixes: routes `shared` at the edge but its spec has no /shared path
 services/orders/openapi.yaml:10: money/spec: `price` is a monetary property but is type: number, not $ref: Money
-test/e2e: service/node-scope: missing test/e2e/package.json
-✗ 105 findings in 42 files. `tabkit rules` explains each rule
+✗ 104 findings in 41 files. `tabkit rules` explains each rule

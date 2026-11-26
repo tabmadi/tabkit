@@ -187,14 +187,7 @@ pub fn stage(cluster: &Cluster) -> Result<()> {
                 "admin",
                 scope.spawn(move || {
                     let mut log = String::new();
-                    let r = build_push(
-                        name,
-                        &mut log,
-                        "admin",
-                        "apps/admin/Dockerfile",
-                        "apps/admin",
-                        &[],
-                    );
+                    let r = build_push(name, &mut log, "admin", "apps/admin/Dockerfile", ".", &[]);
                     (r, log)
                 }),
             ),

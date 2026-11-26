@@ -184,6 +184,9 @@
               module-template = import ./nix/tests/template.nix {
                 inherit pkgs inputs template;
               };
+              module-image-versions = import ./nix/tests/image-versions.nix {
+                inherit pkgs inputs module;
+              };
               module-bun = import ./nix/tests/bun.nix {
                 inherit
                   pkgs

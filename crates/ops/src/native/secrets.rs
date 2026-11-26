@@ -374,20 +374,24 @@ fn generate_gpg(target: &str, name: &str, email: &str, work: &Path) -> Result<()
 pub fn gpg() -> Result<()> {
     const FORGE_KEY: &str = "infra/forge-host/signing-key.enc.yaml";
     const CI_KEY: &str = "infra/ci/commit-signing-key.enc.yaml";
-    let settings = exec::output(
-        "bash",
-        &[
-            "-c",
-            r#"set -a; source infra/forge-host/forge.env; printf '%s\n%s\n' "$FORGE_ORG" "$FORGE_DOMAIN""#,
-        ],
-    )?;
-    let mut lines = settings.lines();
-    let (org, domain) = (
-        lines.next().unwrap_or_default().to_string(),
-        lines.next().unwrap_or_default().to_string(),
-    );
+    // The forge facts are Nix values, per ADR-0116 of the platform. `nix eval` reads one at a time.
+    let fact = |name: &str| {
+        exec::output(
+            "nix",
+            &[
+                "eval",
+                "--raw",
+                "--file",
+                "infra/forge-host/settings.nix",
+                name,
+            ],
+        )
+        .map(|v| v.trim().to_string())
+        .unwrap_or_default()
+    };
+    let (org, domain) = (fact("org"), fact("domain"));
     if org.is_empty() || domain.is_empty() {
-        bail!("infra/forge-host/forge.env names no FORGE_ORG or FORGE_DOMAIN");
+        bail!("infra/forge-host/settings.nix names no org or domain");
     }
     if Path::new(FORGE_KEY).exists() || Path::new(CI_KEY).exists() {
         bail!(

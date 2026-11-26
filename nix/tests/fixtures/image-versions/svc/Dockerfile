@@ -1,0 +1,2 @@
+ARG GO_VERSION=1.0.0
+FROM golang:${GO_VERSION}-alpine

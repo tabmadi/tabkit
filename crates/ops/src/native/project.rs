@@ -14,10 +14,9 @@ pub fn ci_build_context(args: &[String]) -> Result<()> {
     let Some(app) = args.first().filter(|a| !a.is_empty()) else {
         bail!("usage: just ci-build-context <app>");
     };
-    println!(
-        "context={}",
-        if app == "admin" { "apps/admin" } else { "." }
-    );
+    // Every app is a member of the root Bun workspace, so its image builds from the repo root.
+    println!("context=.");
+    let _ = app;
     Ok(())
 }
 
@@ -61,21 +60,22 @@ pub fn e2e(args: &[String]) -> Result<()> {
     let Some((script, rest)) = args.split_first() else {
         bail!("usage: just e2e, e2e-smoke, e2e-a11y, e2e-visual, or lighthouse");
     };
+    // test/e2e is a member of the root Bun workspace, so the install runs once for the whole lockfile.
+    // An install that matches the lockfile changes nothing and takes a moment.
+    exec::status(
+        "bun",
+        &["install", "--frozen-lockfile"],
+        &[("NO_PROXY", NO_PROXY), ("no_proxy", NO_PROXY)],
+    )?;
     std::env::set_current_dir("test/e2e").context("cannot enter test/e2e")?;
-    if !Path::new("node_modules").is_dir() {
-        exec::status(
-            "npm",
-            &["ci"],
-            &[("NO_PROXY", NO_PROXY), ("no_proxy", NO_PROXY)],
-        )?;
-    }
-    let error = Command::new("npm")
-        .args(["run", script, "--"])
+    // Node.js runs the suite, per ADR-0110 of the platform. `node --run` finds each tool in node_modules/.bin.
+    let error = Command::new("node")
+        .args(["--run", script, "--"])
         .args(rest)
         .env("NO_PROXY", NO_PROXY)
         .env("no_proxy", NO_PROXY)
         .exec();
-    bail!("cannot run npm: {error}");
+    bail!("cannot run node: {error}");
 }
 
 /// A child process that stops when this value is dropped.
@@ -238,7 +238,7 @@ mod tests {
     }
 
     #[test]
-    fn a_context_is_the_repo_except_for_the_admin_app() {
+    fn a_context_is_the_repo_for_every_app() {
         assert!(ci_build_context(&["admin".to_string()]).is_ok());
         assert!(ci_build_context(&[]).is_err());
     }

@@ -6,7 +6,7 @@ use anyhow::{Context, Result, bail};
 
 use super::{detail, exec, ok, required, step, values};
 
-const ADMIN_VALUES: &str = ".lowdefy.image";
+const ADMIN_VALUES: &str = ".admin.image";
 
 /// The registry calls of a promotion.
 pub trait Images {

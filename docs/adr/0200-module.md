@@ -24,6 +24,7 @@ Each repo needs the same base and its own language parts. The base must merge wi
 | `tabkit.hooks` | Adds hooks in the git-hooks.nix format |
 | `tabkit.compiler` | Puts a C compiler in the dev shell |
 | `tabkit.env` | Sets environment variables in the dev shell, such as the library path that a Python wheel with native code needs |
+| `tabkit.imageVersions` | Maps a Dockerfile `ARG` to the version of the dev shell, so every image builds with the tested toolchain. The `image-versions` check enforces it |
 | `tabkit.rules.enable` | Turns tabkit on or off in the dev shell, the hooks, and the checks |
 | `tabkit.rules.package` | Sets the tabkit binary |
 | `tabkit.check` | Read only. Makes a check that runs on a copy of the tracked files |
@@ -52,3 +53,4 @@ A change to a shared hook or check reaches a repo only with a new tag.
 - Every option has a description.
 - A repo extends the module through its options or plain flake-parts outputs, never by a copy of its code.
 - The tools read their configs from `.config/` in the repo.
+- A Dockerfile `ARG` that names a toolchain version names the version of the dev shell, through `tabkit.imageVersions`.

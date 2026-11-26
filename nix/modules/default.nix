@@ -200,6 +200,12 @@ in
           default = { };
           description = "The environment variables of the repo. They join the variables of the base dev shell.";
         };
+        imageVersions = mkOption {
+          type = types.attrsOf types.str;
+          default = { };
+          example = lib.literalExpression "{ GO_VERSION = pkgs.go.version; }";
+          description = "The version that each Dockerfile `ARG` must name, by `ARG` name. An image builds with the toolchain of the dev shell.";
+        };
         rules = {
           enable = mkOption {
             type = types.bool;
@@ -255,6 +261,27 @@ in
                 config=(-config-file .config/actionlint.yaml)
               fi
               actionlint -shellcheck= -pyflakes= "''${config[@]}" .github/workflows/*.yml
+            fi
+          '';
+        }
+        // lib.optionalAttrs (cfg.imageVersions != { }) {
+          # A Dockerfile that pins another toolchain than the dev shell builds code that no local run tested.
+          image-versions = check "image-versions" [ pkgs.gnugrep pkgs.findutils ] ''
+            while IFS= read -r file; do
+              ${lib.concatStrings (
+                lib.mapAttrsToList (name: want: ''
+                  { grep -n '^ARG ${name}=' "$file" || true; } | while IFS= read -r line; do
+                    have=''${line#*=}
+                    if [ "$have" != "${want}" ]; then
+                      echo "$file:''${line%%:*}: ${name} is $have, and the dev shell has ${want}" >&2
+                      echo fail > "$TMPDIR/failed"
+                    fi
+                  done
+                '') cfg.imageVersions
+              )}
+            done < <(find . -type f \( -name Dockerfile -o -name '*.Dockerfile' -o -name 'Dockerfile.*' \) ! -name '*.dockerignore')
+            if [ -e "$TMPDIR/failed" ]; then
+              exit 1
             fi
           '';
         }

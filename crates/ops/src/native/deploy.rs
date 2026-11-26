@@ -276,7 +276,7 @@ pub fn platform_deploy(cluster: &Cluster, chart: &str) -> Result<()> {
     if !Path::new(&dir).is_dir() {
         bail!("no such platform chart: {dir}");
     }
-    if chart == "lowdefy" {
+    if chart == "admin" {
         let image = "registry.localhost:5000/admin:local";
         step(&format!(
             "regenerating admin pages and rebuilding the admin image {image}"
@@ -284,14 +284,7 @@ pub fn platform_deploy(cluster: &Cluster, chart: &str) -> Result<()> {
         super::generate::gen_admin()?;
         exec::status(
             "docker",
-            &[
-                "build",
-                "-t",
-                image,
-                "-f",
-                "apps/admin/Dockerfile",
-                "apps/admin",
-            ],
+            &["build", "-t", image, "-f", "apps/admin/Dockerfile", "."],
             &[],
         )?;
         exec::status("docker", &["push", image], &[])?;
@@ -339,15 +332,15 @@ pub fn platform_deploy(cluster: &Cluster, chart: &str) -> Result<()> {
         "8m",
     ]);
     cluster.h(&args)?;
-    if chart == "lowdefy" {
-        step("restarting lowdefy to run the rebuilt image");
-        cluster.k(&["-n", &cluster.ns, "rollout", "restart", "deploy/lowdefy"])?;
+    if chart == "admin" {
+        step("restarting admin to run the rebuilt image");
+        cluster.k(&["-n", &cluster.ns, "rollout", "restart", "deploy/admin"])?;
         cluster.k(&[
             "-n",
             &cluster.ns,
             "rollout",
             "status",
-            "deploy/lowdefy",
+            "deploy/admin",
             "--timeout=180s",
         ])?;
     }

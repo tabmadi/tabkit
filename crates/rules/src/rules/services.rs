@@ -26,6 +26,8 @@ const CONTRACT: &str = "service/contract";
 const DATABASES: &str = "service/databases";
 const WORKSPACE: &str = "service/workspace-copies";
 const NODE_SCOPE: &str = "service/node-scope";
+/// The lockfiles of the package managers that are not Bun.
+const OTHER_LOCKS: [&str; 3] = ["package-lock.json", "pnpm-lock.yaml", "yarn.lock"];
 
 fn re(pattern: &str) -> Regex {
     Regex::new(pattern).expect("a built-in pattern compiles")
@@ -1031,45 +1033,27 @@ fn workspace_copies(ctx: &Ctx<'_>) -> Result<Vec<Finding>> {
     Ok(out)
 }
 
-/// npm stays inside the one Node workspace, and the other workspaces run on Bun.
+/// Bun installs every workspace, so no other package manager leaves a lockfile.
 fn node_scope(ctx: &Ctx<'_>) -> Vec<Finding> {
     if !ctx.cfg.enabled(NODE_SCOPE) {
         return Vec::new();
     }
-    let mut out = Vec::new();
-    for path in ctx.repo.files.iter().filter(|f| {
-        (f.as_str() == "package-lock.json" || f.ends_with("/package-lock.json"))
-            && !f.starts_with("test/e2e/")
-            && !f.contains("node_modules/")
-    }) {
-        out.push(Finding::new(
-            path,
-            0,
-            NODE_SCOPE,
-            "an npm lockfile outside test/e2e",
-        ));
-    }
-    if ctx
-        .repo
-        .read("package.json")
-        .is_some_and(|t| t.contains("\"test/e2e"))
-    {
-        out.push(Finding::new(
-            "package.json",
-            0,
-            NODE_SCOPE,
-            "test/e2e is in the Bun workspace. It stays a Node island",
-        ));
-    }
-    if !is_file(ctx, "test/e2e/package.json") {
-        out.push(Finding::new(
-            "test/e2e",
-            0,
-            NODE_SCOPE,
-            "missing test/e2e/package.json",
-        ));
-    }
-    out
+    ctx.repo
+        .files
+        .iter()
+        .filter(|f| {
+            let name = f.rsplit('/').next().unwrap_or(f);
+            OTHER_LOCKS.contains(&name) && !f.contains("node_modules/")
+        })
+        .map(|path| {
+            Finding::new(
+                path,
+                0,
+                NODE_SCOPE,
+                "a lockfile of another package manager. Bun installs every workspace",
+            )
+        })
+        .collect()
 }
 
 #[cfg(test)]

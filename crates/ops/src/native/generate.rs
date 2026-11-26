@@ -10,7 +10,7 @@ use super::files::{TempDir, repo_files, service_of, under};
 use super::{detail, exec, ok, step, warn};
 
 pub fn gen_admin() -> Result<()> {
-    step("Lowdefy admin pages from services/*/openapi.yaml");
+    step("the admin page manifest from services/*/openapi.yaml");
     exec::status("tabkit", &["gen", "admin"], &[])
 }
 

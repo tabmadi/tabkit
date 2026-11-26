@@ -3,7 +3,6 @@
 mod admin;
 mod build_path;
 mod data_classes;
-mod emit;
 mod rules_index;
 mod shared_components;
 mod zod;
@@ -71,7 +70,7 @@ pub const GENERATORS: &[Generator] = &[
     },
     Generator {
         id: "gen/admin",
-        what: "Lowdefy admin pages from the OpenAPI specs",
+        what: "the admin page manifest from the OpenAPI specs",
         run: admin::run,
         owned: admin::owned,
     },
