@@ -1,5 +1,5 @@
 # The check of the deploy module of ADR-0500. A fixture flake deploys one small machine, and the check asserts the
-# rollback settings and runs the checks of deploy-rs.
+# rollback settings, keeps a node with `check = false` out of the checks, and runs the checks of deploy-rs.
 {
   pkgs,
   inputs,
@@ -25,13 +25,28 @@ let
         }
       ];
     };
-    tabkit.deploy.nodes.machine.hostname = "192.0.2.10";
+    tabkit.deploy.nodes = {
+      machine.hostname = "192.0.2.10";
+      # A copy for a test deploys, but stays out of the checks.
+      copy = {
+        hostname = "127.0.0.1";
+        configuration = "machine";
+        check = false;
+      };
+    };
   };
 
   node = fixture.deploy.nodes.machine;
+  activateCommand =
+    builtins.unsafeDiscardStringContext
+      fixture.checks.${system}.deploy-activate.buildCommand;
 in
 assert node.magicRollback && node.autoRollback;
 assert node.sshUser == "root" && node.confirmTimeout == 300;
+assert fixture.deploy.nodes ? copy;
+# deploy-activate lists each node that it proves as path:node:profile.
+assert pkgs.lib.hasInfix ":machine:system" activateCommand;
+assert !(pkgs.lib.hasInfix ":copy:system" activateCommand);
 pkgs.runCommand "module-deploy"
   {
     schema = fixture.checks.${system}.deploy-schema;

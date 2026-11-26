@@ -81,7 +81,7 @@ The forward chain accepts only three kinds of traffic. These are the declared fl
 
 Each guest reads its secrets at `/run/host-secrets`, a read-only share. A unit on the host copies each secret from its path into the share before the guest starts. The share is in `/run`, so no secret reaches a disk. The store and the secrets are shared with virtiofs, and `/var` of each guest is a volume.
 
-**The deploy is `flakeModules.deploy`.** It is an opt-in flake module of [ADR-0400](0400-opt-in-flake-modules.md), because a deploy is a flake output, not a NixOS option. Each node deploys one `nixosConfiguration` with deploy-rs, with magic rollback and auto rollback on. The checks of deploy-rs become checks of the repo.
+**The deploy is `flakeModules.deploy`.** It is an opt-in flake module of [ADR-0400](0400-opt-in-flake-modules.md), because a deploy is a flake output, not a NixOS option. Each node deploys one `nixosConfiguration` with deploy-rs, with magic rollback and auto rollback on. The checks of deploy-rs become checks of the repo. A node with `check = false` deploys, but stays out of those checks. A QEMU copy of a real node uses it, because each check evaluates the whole machine, and the real node already proves the same modules.
 
 | Option, under `tabkit.deploy.nodes.<name>` | Sets |
 | --- | --- |
@@ -95,7 +95,7 @@ Each guest reads its secrets at `/run/host-secrets`, a read-only share. A unit o
 
 **A release upgrade of NixOS is a deploy for the next boot, then a reboot.** A live switch across releases can fail, as the pilot found. Run `deploy --boot`, then reboot the machine.
 
-**Each module has a test.** The nixosTest `server` proves that a password never logs in and that a closed port stays closed. The nixosTest `microvm-host` boots two nested guests. It proves that a port that no flow names is closed, and that a flow opens one direction only. It proves that only a guest with egress reaches beyond the host, and only a published port reaches a guest from beyond the host. It proves that a guest cannot change its secrets or read the secrets of another guest. The check `module-deploy` builds a fixture node, asserts the rollback settings, and runs the checks of deploy-rs.
+**Each module has a test.** The nixosTest `server` proves that a password never logs in and that a closed port stays closed. The nixosTest `microvm-host` boots two nested guests. It proves that a port that no flow names is closed, and that a flow opens one direction only. It proves that only a guest with egress reaches beyond the host, and only a published port reaches a guest from beyond the host. It proves that a guest cannot change its secrets or read the secrets of another guest. The check `module-deploy` builds a fixture node, asserts the rollback settings, and runs the checks of deploy-rs. It proves that a node with `check = false` stays out of those checks.
 
 ## Consequences
 

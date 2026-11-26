@@ -44,6 +44,11 @@ let
           default = 900;
           description = "The seconds that an activation may take. A restart of each guest of a host fits in it.";
         };
+        check = mkOption {
+          type = types.bool;
+          default = true;
+          description = "Whether the checks of deploy-rs prove this node. A copy for a test, such as a QEMU copy of a real node, can turn it off, because the real node already proves the same modules.";
+        };
         confirmTimeout = mkOption {
           type = types.ints.positive;
           default = 300;
@@ -109,7 +114,9 @@ in
       { pkgs, system, ... }:
       {
         checks = lib.optionalAttrs (lib.hasSuffix "-linux" system) (
-          localInputs.deploy-rs.lib.${system}.deployChecks config.flake.deploy
+          localInputs.deploy-rs.lib.${system}.deployChecks {
+            nodes = lib.filterAttrs (name: _: cfg.nodes.${name}.check) config.flake.deploy.nodes;
+          }
         );
 
         # `nix run .#install-<node> -- <target>` erases the disks of the target and installs the node.
