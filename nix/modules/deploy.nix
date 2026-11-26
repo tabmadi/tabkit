@@ -20,10 +20,11 @@ let
           example = "203.0.113.10";
           description = "The address or SSH host name that the deploy connects to.";
         };
-        configuration = mkOption {
+        machine = mkOption {
           type = types.str;
-          default = name;
-          description = "The name of the nixosConfiguration of this flake that the node runs.";
+          default = "nixosConfigurations.${name}";
+          example = "labConfigurations.host-lab";
+          description = "The attribute path of the NixOS machine that the node runs, in the outputs of this flake. `nix flake check` evaluates every machine under `nixosConfigurations`, so a QEMU copy for a test can live under another output.";
         };
         sshUser = mkOption {
           type = types.str;
@@ -77,10 +78,12 @@ let
       };
     };
 
+  machine = n: lib.getAttrFromPath (lib.splitString "." n.machine) config.flake;
+
   node =
     name: n:
     let
-      nixos = config.flake.nixosConfigurations.${n.configuration};
+      nixos = machine n;
       inherit (nixos.pkgs.stdenv.hostPlatform) system;
     in
     {
@@ -139,7 +142,9 @@ in
                   > "$extra/etc/ssh/ssh_host_ed25519_key"
                 chmod 0600 "$extra/etc/ssh/ssh_host_ed25519_key"
                 ssh-keygen -y -f "$extra/etc/ssh/ssh_host_ed25519_key" > "$extra/etc/ssh/ssh_host_ed25519_key.pub"
-                nixos-anywhere --flake ${lib.escapeShellArg ".#${n.configuration}"} --extra-files "$extra" --target-host "$target"
+                nixos-anywhere --store-paths "$(nix build --no-link --print-out-paths ${lib.escapeShellArg ".#${n.machine}.config.system.build.diskoScript"})" \
+                  "$(nix build --no-link --print-out-paths ${lib.escapeShellArg ".#${n.machine}.config.system.build.toplevel"})" \
+                  --extra-files "$extra" --target-host "$target"
               '';
             }
           )

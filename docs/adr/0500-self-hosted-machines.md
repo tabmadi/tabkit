@@ -81,12 +81,12 @@ The forward chain accepts only three kinds of traffic. These are the declared fl
 
 Each guest reads its secrets at `/run/host-secrets`, a read-only share. A unit on the host copies each secret from its path into the share before the guest starts. The share is in `/run`, so no secret reaches a disk. The store and the secrets are shared with virtiofs, and `/var` of each guest is a volume.
 
-**The deploy is `flakeModules.deploy`.** It is an opt-in flake module of [ADR-0400](0400-opt-in-flake-modules.md), because a deploy is a flake output, not a NixOS option. Each node deploys one `nixosConfiguration` with deploy-rs, with magic rollback and auto rollback on. The checks of deploy-rs become checks of the repo. A node with `check = false` deploys, but stays out of those checks. A QEMU copy of a real node uses it, because each check evaluates the whole machine, and the real node already proves the same modules.
+**The deploy is `flakeModules.deploy`.** It is an opt-in flake module of [ADR-0400](0400-opt-in-flake-modules.md), because a deploy is a flake output, not a NixOS option. Each node deploys one NixOS machine of the flake with deploy-rs, with magic rollback and auto rollback on. The checks of deploy-rs become checks of the repo. A node with `check = false` deploys, but stays out of those checks. A QEMU copy of a real node uses it, because each check evaluates the whole machine, and the real node already proves the same modules. `nix flake check` also evaluates every machine under `nixosConfigurations`, so a QEMU copy lives under another output, and `machine` names it.
 
 | Option, under `tabkit.deploy.nodes.<name>` | Sets |
 | --- | --- |
 | `hostname` | The address that the deploy connects to |
-| `configuration` | The `nixosConfiguration` that the node runs, by default the name of the node |
+| `machine` | The attribute path of the NixOS machine that the node runs, by default `nixosConfigurations.<name>` |
 | `sshUser` and `sshOpts` | How the deploy logs in |
 | `activationTimeout` | The time for an activation, by default 900 seconds, so a restart of every guest fits |
 | `confirmTimeout` | The time that the node waits for a new SSH connection before it rolls back, by default 300 seconds |

@@ -15,10 +15,11 @@ let
     { name, ... }:
     {
       options = {
-        configuration = mkOption {
+        machine = mkOption {
           type = types.str;
-          default = name;
-          description = "The nixosConfiguration of this flake that the tier installs.";
+          default = "nixosConfigurations.${name}";
+          example = "labConfigurations.host-lab";
+          description = "The attribute path of the NixOS machine that the tier installs, in the outputs of this flake. A machine outside `nixosConfigurations` stays out of `nix flake check`.";
         };
         node = mkOption {
           type = types.str;
@@ -100,7 +101,7 @@ let
   installer =
     system: tier:
     let
-      path = config.flake.nixosConfigurations.${tier.configuration}.pkgs.path;
+      path = (lib.getAttrFromPath (lib.splitString "." tier.machine) config.flake).pkgs.path;
     in
     (import "${path}/nixos/lib/eval-config.nix" {
       inherit system;
@@ -139,7 +140,7 @@ let
       ];
       text = ''
         export FULL_TIER_NAME=${lib.escapeShellArg name}
-        export FULL_TIER_CONFIGURATION=${lib.escapeShellArg tier.configuration}
+        export FULL_TIER_MACHINE=${lib.escapeShellArg tier.machine}
         export FULL_TIER_NODE=${lib.escapeShellArg tier.node}
         export FULL_TIER_CPUS=${toString tier.cpus}
         export FULL_TIER_MEMORY_MIB=${toString tier.memory}

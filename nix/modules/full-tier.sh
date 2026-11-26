@@ -116,7 +116,11 @@ install_host() {
   if [ -n "${FULL_TIER_SSH_KEY:-}" ]; then
     identity=(-i "$FULL_TIER_SSH_KEY")
   fi
-  nixos-anywhere --flake ".#$FULL_TIER_CONFIGURATION" --phases disko,install --extra-files "$extra" "${flags[@]}" \
+  # nixos-anywhere finds a flake machine only under nixosConfigurations, so the tier builds the two paths itself.
+  local disko toplevel
+  disko=$(nix build --no-link --print-out-paths ".#$FULL_TIER_MACHINE.config.system.build.diskoScript")
+  toplevel=$(nix build --no-link --print-out-paths ".#$FULL_TIER_MACHINE.config.system.build.toplevel")
+  nixos-anywhere --store-paths "$disko" "$toplevel" --phases disko,install --extra-files "$extra" "${flags[@]}" \
     "${identity[@]}" --ssh-port "$FULL_TIER_SSH_PORT" \
     --ssh-option StrictHostKeyChecking=no --ssh-option UserKnownHostsFile=/dev/null \
     --target-host root@127.0.0.1
