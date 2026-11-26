@@ -9,6 +9,7 @@ use std::process::{Child, Command, Stdio};
 use anyhow::{Context, Result, bail};
 use serde_json::{Value, json};
 
+use super::buildx::Builder;
 use super::cluster::{Cluster, sleep};
 use super::project::Background;
 use super::{detail, exec, ok, step, warn};
@@ -580,20 +581,8 @@ fn lighthouse_up(port: &str) -> Result<()> {
     }
     lighthouse_down();
     step("building the frontend's production image");
-    let builder = format!("ci-keep-{}", exec::output("id", &["-un"])?.trim());
-    if !exec::succeeds("docker", &["buildx", "inspect", &builder]) {
-        exec::output(
-            "docker",
-            &[
-                "buildx",
-                "create",
-                "--name",
-                &builder,
-                "--driver",
-                "docker-container",
-            ],
-        )?;
-    }
+    let user = exec::output("id", &["-un"])?;
+    let builder = Builder::ensure(&format!("ci-keep-{}", user.trim()), false)?;
     let version = format!(
         "SERVICE_VERSION={}",
         std::env::var("GIT_SHA")
@@ -601,13 +590,9 @@ fn lighthouse_up(port: &str) -> Result<()> {
             .filter(|v| !v.is_empty())
             .unwrap_or_else(|| "dev".to_string())
     );
-    exec::status(
-        "docker",
-        &[
-            "buildx",
-            "build",
-            "--builder",
-            &builder,
+    let status = builder
+        .command()
+        .args([
             "--progress",
             "plain",
             "--load",
@@ -618,9 +603,11 @@ fn lighthouse_up(port: &str) -> Result<()> {
             "--build-arg",
             &version,
             ".",
-        ],
-        &[],
-    )?;
+        ])
+        .status()?;
+    if !status.success() {
+        bail!("Docker Buildx failed with {status}");
+    }
     step(&format!(
         "starting the stack on https://dev.localtest.me:{port}"
     ));

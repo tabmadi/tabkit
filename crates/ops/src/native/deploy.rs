@@ -706,25 +706,25 @@ pub fn argo(args: &[String]) -> Result<()> {
     Ok(())
 }
 
-fn install_chart(release: &str, chart: &str, namespace: &str) -> Result<()> {
+fn install_chart(release: &str, chart: &str, namespace: &str, values: Option<&str>) -> Result<()> {
     if !Path::new(chart).join("charts").is_dir() {
         chart_deps(chart)?;
     }
-    exec::status(
-        "helm",
-        &[
-            "upgrade",
-            "--install",
-            release,
-            chart,
-            "-n",
-            namespace,
-            "--create-namespace",
-            "--timeout",
-            "10m",
-        ],
-        &[],
-    )
+    let mut args = vec![
+        "upgrade",
+        "--install",
+        release,
+        chart,
+        "-n",
+        namespace,
+        "--create-namespace",
+        "--timeout",
+        "10m",
+    ];
+    if let Some(path) = values {
+        args.extend(["-f", path]);
+    }
+    exec::status("helm", &args, &[])
 }
 
 fn kubectl_apply(manifest: &str) -> Result<()> {
@@ -752,7 +752,15 @@ pub fn argocd_bootstrap(args: &[String]) -> Result<()> {
         exec::output("kubectl", &["config", "current-context"])?.trim()
     ));
     step("installing Argo CD");
-    install_chart("argocd", "infra/helm/platform/argocd", "argocd")?;
+    let values = std::env::var("ARGOCD_VALUES_FILE")
+        .ok()
+        .filter(|value| !value.is_empty());
+    install_chart(
+        "argocd",
+        "infra/helm/platform/argocd",
+        "argocd",
+        values.as_deref(),
+    )?;
     for name in [
         "argocd-server",
         "argocd-repo-server",
@@ -772,7 +780,12 @@ pub fn argocd_bootstrap(args: &[String]) -> Result<()> {
         )?;
     }
     step("installing Traefik, whose CRDs the gateway's Middlewares resolve against");
-    install_chart("traefik", "infra/helm/platform/traefik", "kube-system")?;
+    install_chart(
+        "traefik",
+        "infra/helm/platform/traefik",
+        "kube-system",
+        None,
+    )?;
     exec::status(
         "kubectl",
         &[

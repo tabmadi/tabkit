@@ -10,6 +10,7 @@ use std::sync::{Arc, Mutex};
 use anyhow::{Context, Result, bail};
 use serde_json::{Value, json};
 
+use super::buildx::Builder;
 use super::files::{TempDir, under};
 use super::forge::{Api, CiGit, json as parse, values_changed};
 use super::{detail, exec, ok, required, step, values, warn};
@@ -542,23 +543,6 @@ pub fn image_digest(args: &[String]) -> Result<()> {
     Ok(())
 }
 
-fn ensure_builder(name: &str) -> Result<()> {
-    if !exec::succeeds("docker", &["buildx", "inspect", name]) {
-        exec::output(
-            "docker",
-            &[
-                "buildx",
-                "create",
-                "--name",
-                name,
-                "--driver",
-                "docker-container",
-            ],
-        )?;
-    }
-    Ok(())
-}
-
 fn user() -> Result<String> {
     Ok(exec::output("id", &["-un"])?.trim().to_string())
 }
@@ -584,21 +568,17 @@ struct Build {
 }
 
 /// Builds, pushes, and signs one image, and returns its whole log, so two builds never mix their lines.
-fn build_one(build: &Build, builder: &str, prefix: &str, sha: &str, work: &Path) -> (bool, String) {
+fn build_one(
+    build: &Build,
+    builder: &Builder,
+    prefix: &str,
+    sha: &str,
+    work: &Path,
+) -> (bool, String) {
     let meta = work.join(format!("{}.json", build.name));
-    let mut command = Command::new("docker");
+    let mut command = builder.command();
     command
-        .args([
-            "buildx",
-            "build",
-            "--builder",
-            builder,
-            "--progress",
-            "plain",
-            "--push",
-            "--file",
-            &build.file,
-        ])
+        .args(["--progress", "plain", "--push", "--file", &build.file])
         .args([
             "--tag",
             &format!("{prefix}/{}:{sha}", build.name),
@@ -697,8 +677,7 @@ pub fn build_images(args: &[String]) -> Result<()> {
     let Ok(Value::Array(items)) = serde_json::from_str::<Value>(&raw) else {
         bail!("ITEMS is not a JSON array: {raw}");
     };
-    let builder = format!("ci-keep-{}", user()?);
-    ensure_builder(&builder)?;
+    let builder = Builder::ensure(&format!("ci-keep-{}", user()?), false)?;
     let parallel: usize = std::env::var("BUILD_PARALLEL")
         .ok()
         .and_then(|v| v.parse().ok())
@@ -795,19 +774,15 @@ fn design_build(pr: &str) -> Result<()> {
 
 fn design_image(pr: &str, prefix: &str, sha: &str, src: &str, work: &Path) -> Result<String> {
     let reference = format!("{prefix}/design/frontend:pr-{pr}-{sha}");
-    let builder = format!("ci-design-{}", user()?);
-    ensure_builder(&builder)?;
+    let builder = Builder::ensure(&format!("ci-design-{}", user()?), true)?;
     step(&format!("building {reference}"));
     let meta = work.join("meta.json");
     let meta_text = meta.to_string_lossy().into_owned();
     let dockerfile = format!("{src}/apps/frontend/Dockerfile");
     let version = format!("SERVICE_VERSION={sha}");
     let cache = hosted_cache("design-frontend");
-    let mut args = vec![
-        "buildx",
-        "build",
-        "--builder",
-        &builder,
+    let mut command = builder.command();
+    command.args([
         "--progress",
         "plain",
         "--push",
@@ -817,9 +792,8 @@ fn design_image(pr: &str, prefix: &str, sha: &str, src: &str, work: &Path) -> Re
         &reference,
         "--metadata-file",
         &meta_text,
-    ];
-    args.extend(cache.iter().map(String::as_str));
-    args.extend([
+    ]);
+    command.args(cache).args([
         "--build-arg",
         "NEXT_PUBLIC_FIXTURES=1",
         "--build-arg",
@@ -828,7 +802,10 @@ fn design_image(pr: &str, prefix: &str, sha: &str, src: &str, work: &Path) -> Re
         &version,
         src,
     ]);
-    exec::status("docker", &args, &[])?;
+    let status = command.status().context("cannot run Docker Buildx")?;
+    if !status.success() {
+        bail!("Docker Buildx failed with {status}");
+    }
     let digest = parse(&fs::read_to_string(&meta)?)?["containerimage.digest"]
         .as_str()
         .context("the build wrote no image digest")?

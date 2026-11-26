@@ -10,11 +10,11 @@ use std::time::Duration;
 use anyhow::{Context, Result, bail};
 
 use super::files::TempDir;
-use super::{deploy, detail, exec, ok, secrets, step, warn};
+use super::proxy::PROXY_ENV;
+use super::{deploy, detail, exec, ok, proxy, secrets, step, warn};
 
 pub const REGISTRY: &str = "registry.localhost";
 const KIND_CONFIG: &str = "infra/local/kind.yaml";
-const PROXY_ENV: &str = "infra/local/proxy.local.env";
 const MARKER: &str = "TABKIT_CLUSTER_ENV";
 const PRELUDE: [&str; 8] = [
     "registry",
@@ -1637,8 +1637,16 @@ pub fn run(args: &[String]) -> Result<()> {
         tier = Some(first.clone());
         rest = &rest[1..];
     }
-    let cluster = Cluster::with_tier(tier.as_deref().unwrap_or("base"))?;
     require_tools(&["docker", "kind", "kubectl", "helm"])?;
+    if verb == "up"
+        && variable(MARKER).is_none()
+        && variable("CI").is_some()
+        && proxy::from_env().is_some()
+        && (!Path::new(PROXY_ENV).is_file() || !Path::new(proxy::PROXY_VALUES).is_file())
+    {
+        proxy::run(&[])?;
+    }
+    let cluster = Cluster::with_tier(tier.as_deref().unwrap_or("base"))?;
     match verb {
         "up" => cluster.up(),
         "stop" => cluster.stop(),

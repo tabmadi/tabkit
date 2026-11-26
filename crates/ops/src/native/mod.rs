@@ -8,6 +8,7 @@
 )]
 
 pub mod allowlist;
+mod buildx;
 pub mod ci;
 pub mod cluster;
 pub mod cluster_argo;
