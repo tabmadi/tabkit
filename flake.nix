@@ -81,6 +81,7 @@
           sops-guests = ./nix/nixos/sops-guests.nix;
           postgres = ./nix/nixos/postgres.nix;
           temporal = ./nix/nixos/temporal.nix;
+          egress = ./nix/nixos/egress.nix;
         };
 
         # The checks of the modules live here, not in the module that every repo imports. The nixosTests boot VMs.
@@ -220,6 +221,10 @@
                 inherit pkgs;
                 module = ./nix/nixos/mtls-gate.nix;
               };
+              egress = import ./nix/tests/egress.nix {
+                inherit pkgs;
+                module = ./nix/nixos/egress.nix;
+              };
               nix-cache = import ./nix/tests/nix-cache.nix {
                 inherit pkgs;
                 module = nixCache;
@@ -250,6 +255,7 @@
                   ./nix/nixos/temporal.nix
                   ./nix/nixos/monitoring.nix
                   ./nix/nixos/cloudflare-origin.nix
+                  ./nix/nixos/egress.nix
                 ];
               };
               temporal = import ./nix/tests/temporal.nix {

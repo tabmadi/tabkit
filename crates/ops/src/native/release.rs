@@ -319,19 +319,21 @@ pub fn act_local(args: &[String]) -> Result<()> {
             .filter(|v| !v.is_empty())
             .unwrap_or_else(|| default.to_string())
     };
-    let (proxy, image, event, env_file) = (
-        variable("ACT_PROXY", ""),
+    let egress = super::egress::Egress::load();
+    let proxy = egress.proxy.clone().unwrap_or_default();
+    let (image, event, env_file) = (
         variable("ACT_IMAGE", "catthehacker/ubuntu:act-latest"),
         variable("ACT_EVENT", "pull_request"),
         variable("ACT_ENV_FILE", ".env"),
     );
-    let mut no_proxy = "127.0.0.1,localhost".to_string();
     let route = exec::lossy("ip", &["-4", "route", "get", "1.1.1.1"]).unwrap_or_default();
     let words: Vec<&str> = route.split_whitespace().collect();
-    if let Some(ip) = words.windows(2).find(|w| w[0] == "src").map(|w| w[1]) {
-        no_proxy.push(',');
-        no_proxy.push_str(ip);
-    }
+    let host: Vec<&str> = words
+        .windows(2)
+        .filter(|w| w[0] == "src")
+        .map(|w| w[1])
+        .collect();
+    let no_proxy = egress.bypass_with(&host);
     let mut command: Vec<String> = vec![
         event.clone(),
         "-P".into(),

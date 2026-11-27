@@ -7,14 +7,9 @@ __CLUSTER_SH_LOADED=1
 
 source "$(dirname "${BASH_SOURCE[0]}")/bootstrap.sh"
 
-# Loaded, not computed. kind reads the proxy variables from its own environment, and only kind can add the node's name to NO_PROXY.
-# Without that, `kind create` stops on an EOF.
-if [ -f "$ROOT/infra/local/proxy.local.env" ]; then
-  set -a
-  # shellcheck source=/dev/null
-  . "$ROOT/infra/local/proxy.local.env"
-  set +a
-fi
+# kind reads the proxy variables from its own environment, and only kind can add the node's name to NO_PROXY.
+# The egress of this machine comes from tabkit-ops, per ADR-1300.
+eval "$(tabkit-ops egress env)"
 CLUSTER="${CLUSTER:-platform}"
 # shellcheck disable=SC2034  # the project scripts that source this file read these three.
 NS="${NS:-platform}"

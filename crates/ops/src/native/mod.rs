@@ -9,12 +9,14 @@
 
 pub mod allowlist;
 mod buildx;
+pub mod bundle;
 pub mod ci;
 pub mod cluster;
 pub mod cluster_argo;
 pub mod cluster_images;
 pub mod deploy;
 pub mod devloop;
+pub mod egress;
 pub mod exec;
 pub mod files;
 pub mod forge;
@@ -24,7 +26,6 @@ pub mod lint;
 pub mod loki;
 pub mod project;
 pub mod promote;
-pub mod proxy;
 pub mod prune;
 pub mod release;
 pub mod secrets;
@@ -41,6 +42,7 @@ pub const COMMANDS: &[&str] = &[
     "argocd-bootstrap",
     "auth-token",
     "bootstrap",
+    "bundle",
     "ci-affected-adversarial",
     "ci-affected-matrix",
     "ci-build-context",
@@ -64,6 +66,7 @@ pub const COMMANDS: &[&str] = &[
     "dev-frontend",
     "dns",
     "e2e",
+    "egress",
     "env-ensure",
     "forge-apply",
     "forge-ci-user",
@@ -94,7 +97,6 @@ pub const COMMANDS: &[&str] = &[
     "promote-dev-staging",
     "promote-prod",
     "promote-verify",
-    "proxy-setup",
     "release",
     "rotate-local-age-key",
     "scan",
@@ -120,10 +122,12 @@ pub fn run(name: &str, args: &[String]) -> Result<()> {
         "argo" => deploy::argo(args),
         "argocd-bootstrap" => deploy::argocd_bootstrap(args),
         "auth-token" => devloop::auth_token(args),
+        "bundle" => bundle::run(args),
         "ci-preview" => deploy::ci_preview(args),
         "cluster" => cluster::run(args),
         "dev-forward" => devloop::dev_forward(),
         "dev-frontend" => devloop::dev_frontend(),
+        "egress" => egress::run(args),
         "lighthouse-stack" => devloop::lighthouse_stack(args),
         "mock" => devloop::mock(args),
         "ops-grant" => devloop::ops_grant(args),
@@ -133,7 +137,6 @@ pub fn run(name: &str, args: &[String]) -> Result<()> {
         }
         "populate-zot" => deploy::populate_zot(&cluster::Cluster::detect()?),
         "privacy" => devloop::privacy(args),
-        "proxy-setup" => proxy::run(args),
         "service-deploy" => {
             let service = args.first().context("usage: just cluster-add <svc>")?;
             deploy::service_deploy(&cluster::Cluster::detect()?, service, &mut Vec::new())

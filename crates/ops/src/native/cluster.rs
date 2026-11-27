@@ -9,9 +9,9 @@ use std::time::Duration;
 
 use anyhow::{Context, Result, bail};
 
+use super::egress::Egress;
 use super::files::TempDir;
-use super::proxy::PROXY_ENV;
-use super::{deploy, detail, exec, ok, proxy, secrets, step, warn};
+use super::{deploy, detail, exec, ok, secrets, step, warn};
 
 pub const REGISTRY: &str = "registry.localhost";
 const KIND_CONFIG: &str = "infra/local/kind.yaml";
@@ -61,17 +61,6 @@ fn variable(name: &str) -> Option<String> {
 
 pub fn sleep(seconds: u64) {
     std::thread::sleep(Duration::from_secs(seconds));
-}
-
-/// The `KEY=value` lines of the proxy file of this machine.
-fn proxy_env() -> Vec<(String, String)> {
-    fs::read_to_string(PROXY_ENV)
-        .unwrap_or_default()
-        .lines()
-        .filter(|l| !l.starts_with('#'))
-        .filter_map(|l| l.split_once('='))
-        .map(|(k, v)| (k.trim().to_string(), v.trim().to_string()))
-        .collect()
 }
 
 fn valid_tier(tier: &str) -> Result<()> {
@@ -140,7 +129,7 @@ fn reexec_with(tier: &str) -> Result<()> {
     }
     let error = Command::new(std::env::current_exe()?)
         .args(std::env::args().skip(1))
-        .envs(proxy_env())
+        .envs(Egress::load().env())
         .env("TIER", tier)
         .env(MARKER, "1")
         .exec();
@@ -580,7 +569,7 @@ impl Cluster {
         }
         report_missed(&missed_paths);
         bail!(
-            "{} image(s) above could not be cached. The nodes pull only from\n  this registry, so the cluster cannot start without them. Run it again to retry.\n  If it still fails, check egress with 'just proxy-setup --check'.",
+            "{} image(s) above could not be cached. The nodes pull only from\n  this registry, so the cluster cannot start without them. Run it again to retry.\n  If it still fails, check egress with 'just egress-setup --check'.",
             missed.len()
         );
     }
@@ -1064,8 +1053,14 @@ impl Cluster {
             "--timeout",
             "8m",
         ];
-        if Path::new("infra/local/proxy.local.yaml").is_file() {
-            args.extend(["-f", "infra/local/proxy.local.yaml"]);
+        let proxy_values =
+            std::env::temp_dir().join(format!("tabkit-argocd-egress-{}.yaml", std::process::id()));
+        if let Some(values) = Egress::load().argocd_values() {
+            fs::write(&proxy_values, values)?;
+            args.extend([
+                "-f",
+                proxy_values.to_str().context("temp path is not UTF-8")?,
+            ]);
         }
         self.h(&args)?;
         for deployment in [
@@ -1638,14 +1633,6 @@ pub fn run(args: &[String]) -> Result<()> {
         rest = &rest[1..];
     }
     require_tools(&["docker", "kind", "kubectl", "helm"])?;
-    if verb == "up"
-        && variable(MARKER).is_none()
-        && variable("CI").is_some()
-        && proxy::from_env().is_some()
-        && (!Path::new(PROXY_ENV).is_file() || !Path::new(proxy::PROXY_VALUES).is_file())
-    {
-        proxy::run(&[])?;
-    }
     let cluster = Cluster::with_tier(tier.as_deref().unwrap_or("base"))?;
     match verb {
         "up" => cluster.up(),

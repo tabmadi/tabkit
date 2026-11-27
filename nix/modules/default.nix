@@ -244,7 +244,20 @@ in
           ++ lib.optional cfg.rules.enable cfg.rules.package
           ++ cfg.packages;
           env = configEnv // cfg.env;
-          shellHook = hooks.shellHook;
+          # The egress file of the machine, per ADR-1300. A value that the shell already has wins.
+          shellHook = hooks.shellHook + ''
+            if [ -r /etc/tabkit/egress.env ]; then
+              while IFS='=' read -r key value; do
+                case "$key" in
+                  TABKIT_EGRESS | HTTP_PROXY | HTTPS_PROXY | NO_PROXY | http_proxy | https_proxy | no_proxy)
+                    value="''${value#\'}"
+                    value="''${value%\'}"
+                    [ -n "''${!key:-}" ] || export "$key=$value"
+                    ;;
+                esac
+              done < /etc/tabkit/egress.env
+            fi
+          '';
         };
 
         checks = {

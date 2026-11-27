@@ -14,7 +14,7 @@ tabkit has one maintainer. It is free to use under the Apache License 2.0, and i
 | `formatter` | nixfmt |
 | `systems` | Linux, on x86-64 and ARM. Linux is the one supported platform |
 | Opt-in flake modules | `template` adds the `templates` output and the `lint-scope` check. `bun`, `go`, and `shell` serve a repo with that part. `deploy` serves a repo that deploys its own machines. Each one has a check |
-| NixOS modules | `server`, `microvm-host`, `mtls-gate`, `nix-cache`, `postgres`, `openbao`, `temporal`, `monitoring`, `cloudflare-origin`, and `sops-guests`, for the machines that a repo runs. Each one has a nixosTest |
+| NixOS modules | `server`, `microvm-host`, `mtls-gate`, `nix-cache`, `postgres`, `openbao`, `temporal`, `monitoring`, `cloudflare-origin`, `sops-guests`, and `egress`, for the machines that a repo runs. Each one has a nixosTest |
 | Binary cache | `nix-cache-push` in the dev shell, which `just cache-push` runs after the CI gate. The variables `NIX_CACHE_URL` and `NIX_CACHE_PUBLIC_KEY` of a repo turn it on |
 
 ## Getting started
@@ -203,6 +203,34 @@ The host needs DNS names for `domain`, `s3.<domain>`, and the mirror. A repo tur
 extra-substituters = https://cache.example.com
 extra-trusted-public-keys = cache.example.com-1:<public key>
 ```
+
+## Network egress
+
+A machine reads internal mirrors at four levels: `direct`, `proxy`, `internal`, and `airgap`, per [ADR-1300](docs/adr/1300-network-egress.md). The file `/etc/tabkit/egress.env` holds the level, the proxy, and the bypass list. The dev shell loads it.
+
+On NixOS, `egress` writes the file, loads it into the Nix daemon, Docker, and the listed units, and installs the site CA:
+
+```nix
+modules = [
+  tabkit.nixosModules.egress
+  {
+    tabkit.egress = {
+      enable = true;
+      level = "proxy";
+      proxy = "http://proxy.example.net:3128";
+      noProxy = [ "forge.internal" "registry.internal" ];
+      substituters = [ "https://cache.internal" ];
+      trustedPublicKeys = [ "cache.internal-1:<public key>" ];
+    };
+  }
+];
+```
+
+At `internal` and `airgap`, the listed caches are the only substituters. A proxy URL with credentials goes into `environmentFile`, outside the Nix store.
+
+On another machine, write the file by hand and run `tabkit-ops egress setup`. It writes the systemd drop-ins and the Docker build settings, and it prints the install commands that need root. `tabkit-ops egress env` prints the settings as shell exports.
+
+`tabkit-ops bundle export <file> --key <key> --images <list> [installable...]` writes a signed Nix closure, the flake inputs, each image as an OCI layout, and a git bundle. `tabkit-ops bundle import <file> --registry <host> --forge <url>` loads them inside the site. The site trusts the public half of the key.
 
 ## Checks and generators
 

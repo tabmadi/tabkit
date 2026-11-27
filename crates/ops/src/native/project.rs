@@ -54,26 +54,25 @@ pub fn env_ensure() -> Result<()> {
     std::process::exit(1);
 }
 
-const NO_PROXY: &str = "localhost,127.0.0.1,.localtest.me";
-
 pub fn e2e(args: &[String]) -> Result<()> {
     let Some((script, rest)) = args.split_first() else {
         bail!("usage: just e2e, e2e-smoke, e2e-a11y, e2e-visual, or lighthouse");
     };
     // test/e2e is a member of the root Bun workspace, so the install runs once for the whole lockfile.
     // An install that matches the lockfile changes nothing and takes a moment.
+    let bypass = super::egress::Egress::load().bypass;
     exec::status(
         "bun",
         &["install", "--frozen-lockfile"],
-        &[("NO_PROXY", NO_PROXY), ("no_proxy", NO_PROXY)],
+        &[("NO_PROXY", &bypass), ("no_proxy", &bypass)],
     )?;
     std::env::set_current_dir("test/e2e").context("cannot enter test/e2e")?;
     // Node.js runs the suite, per ADR-0110 of the platform. `node --run` finds each tool in node_modules/.bin.
     let error = Command::new("node")
         .args(["--run", script, "--"])
         .args(rest)
-        .env("NO_PROXY", NO_PROXY)
-        .env("no_proxy", NO_PROXY)
+        .env("NO_PROXY", &bypass)
+        .env("no_proxy", &bypass)
         .exec();
     bail!("cannot run node: {error}");
 }

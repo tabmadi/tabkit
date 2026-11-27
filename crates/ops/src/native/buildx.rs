@@ -56,6 +56,7 @@ pub(super) struct Builder {
 impl Builder {
     pub(super) fn ensure(base: &str, pull_request: bool) -> Result<Self> {
         let config = read_config()?;
+        let egress = super::egress::Egress::load().env();
         let mut proxy = Vec::new();
         for (upper, lower, key) in KEYS {
             let value = config["proxies"]["default"][key]
@@ -63,9 +64,10 @@ impl Builder {
                 .filter(|v| !v.is_empty())
                 .map(str::to_owned)
                 .or_else(|| {
-                    [lower, upper]
+                    egress
                         .iter()
-                        .find_map(|name| std::env::var(name).ok().filter(|v| !v.is_empty()))
+                        .find(|(name, _)| name == upper)
+                        .map(|(_, value)| value.clone())
                 });
             if let Some(value) = value {
                 proxy.extend([(upper, value.clone()), (lower, value)]);
