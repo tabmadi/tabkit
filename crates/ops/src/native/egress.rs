@@ -410,7 +410,7 @@ fn setup(args: &[String]) -> Result<()> {
     println!();
     if report.gaps > 0 {
         bail!(
-            "{} gap(s) above. Details are in docs/guide/egress.md",
+            "{} gap(s) above. Details are in docs/egress.md",
             report.gaps
         );
     }
