@@ -183,18 +183,22 @@ fn import(args: &[String]) -> Result<()> {
     let manifest =
         fs::read_to_string(work.0.join("manifest.txt")).context("the bundle has no manifest")?;
 
-    step("loading the Nix closure. The store checks each signature");
-    let cache = format!("file://{}", path_str(&work.0.join("nix"))?);
-    exec::status("nix", &["copy", "--from", &cache, "--all"], &[])?;
-
+    // Each check of the arguments comes before the first change to the site.
     let image_lines: Vec<(&str, &str)> = manifest
         .lines()
         .filter_map(|l| l.strip_prefix("image "))
         .filter_map(|l| l.split_once(' '))
         .collect();
-    if !image_lines.is_empty() {
-        let registry =
-            flag(args, "--registry").context("the bundle holds images, so pass --registry")?;
+    let registry = flag(args, "--registry");
+    if !image_lines.is_empty() && registry.is_none() {
+        bail!("the bundle holds images, so pass --registry");
+    }
+
+    step("loading the Nix closure. The store checks each signature");
+    let cache = format!("file://{}", path_str(&work.0.join("nix"))?);
+    exec::status("nix", &["copy", "--from", &cache, "--all"], &[])?;
+
+    if let Some(registry) = registry.filter(|_| !image_lines.is_empty()) {
         let tls = if args.iter().any(|a| a == "--plain-http") {
             "--dest-tls-verify=false"
         } else {
