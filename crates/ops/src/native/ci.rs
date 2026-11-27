@@ -547,13 +547,18 @@ fn user() -> Result<String> {
     Ok(exec::output("id", &["-un"])?.trim().to_string())
 }
 
-fn hosted_cache(scope: &str) -> Vec<String> {
+/// The build cache of a hosted runner, which starts empty. It lives in the image registry, so any forge serves it and
+/// no action has to expose a cache service. A self-hosted runner keeps its builder and needs none.
+fn hosted_cache(prefix: &str, scope: &str) -> Vec<String> {
     if std::env::var("RUNNER_ENVIRONMENT").is_ok_and(|v| v == "github-hosted") {
+        let reference = format!("{prefix}/cache/{scope}:buildcache");
         vec![
             "--cache-from".to_string(),
-            format!("type=gha,scope={scope}"),
+            format!("type=registry,ref={reference}"),
             "--cache-to".to_string(),
-            format!("type=gha,mode=max,scope={scope}"),
+            format!(
+                "type=registry,ref={reference},mode=max,image-manifest=true,oci-mediatypes=true"
+            ),
         ]
     } else {
         Vec::new()
@@ -590,7 +595,7 @@ fn build_one(
             "--metadata-file",
         ])
         .arg(&meta)
-        .args(hosted_cache(&build.name))
+        .args(hosted_cache(prefix, &build.name))
         .args(&build.args)
         .arg(&build.context)
         .stdin(Stdio::null());
@@ -785,7 +790,7 @@ fn design_image(pr: &str, prefix: &str, sha: &str, src: &str, work: &Path) -> Re
     let meta_text = meta.to_string_lossy().into_owned();
     let dockerfile = format!("{src}/apps/frontend/Dockerfile");
     let version = format!("SERVICE_VERSION={sha}");
-    let cache = hosted_cache("design-frontend");
+    let cache = hosted_cache(prefix, "design-frontend");
     let mut command = builder.command();
     command.args([
         "--progress",
