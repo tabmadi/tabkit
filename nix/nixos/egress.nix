@@ -71,6 +71,12 @@ in
       example = [ "forge.internal" ];
       description = "The names and ranges of the site that every client reaches directly. The module adds the base list.";
     };
+    registryMirror = mkOption {
+      type = types.nullOr types.str;
+      default = null;
+      example = "registry.internal";
+      description = "The registry that mirrors each upstream under a path of its host name. Every image build pulls its base images from it.";
+    };
     caFile = mkOption {
       type = types.nullOr types.path;
       default = null;
@@ -119,11 +125,13 @@ in
       }
     ];
 
-    environment.etc."tabkit/egress.env".text = ''
-      TABKIT_EGRESS=${cfg.level}
-      ${proxyLines}NO_PROXY=${bypass}
-      no_proxy=${bypass}
-    '';
+    environment.etc."tabkit/egress.env".text = lib.concatStrings [
+      "TABKIT_EGRESS=${cfg.level}\n"
+      (lib.optionalString (cfg.registryMirror != null) "TABKIT_REGISTRY_MIRROR=${cfg.registryMirror}\n")
+      proxyLines
+      "NO_PROXY=${bypass}\n"
+      "no_proxy=${bypass}\n"
+    ];
 
     systemd.services =
       lib.genAttrs

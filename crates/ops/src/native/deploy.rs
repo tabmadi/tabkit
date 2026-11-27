@@ -117,7 +117,9 @@ fn build_and_load(
     build_args: &[String],
 ) -> Result<()> {
     step(&format!("building {reference}"));
+    let contexts = super::buildx::contexts(dockerfile)?;
     let mut args = vec!["build", "-t", reference];
+    args.extend(contexts.iter().map(String::as_str));
     for arg in build_args {
         args.extend(["--build-arg", arg.as_str()]);
     }
@@ -282,11 +284,11 @@ pub fn platform_deploy(cluster: &Cluster, chart: &str) -> Result<()> {
             "regenerating admin pages and rebuilding the admin image {image}"
         ));
         super::generate::gen_admin()?;
-        exec::status(
-            "docker",
-            &["build", "-t", image, "-f", "apps/admin/Dockerfile", "."],
-            &[],
-        )?;
+        let mut args = vec!["build", "-t", image, "-f", "apps/admin/Dockerfile"];
+        let contexts = super::buildx::contexts("apps/admin/Dockerfile")?;
+        args.extend(contexts.iter().map(String::as_str));
+        args.push(".");
+        exec::status("docker", &args, &[])?;
         exec::status("docker", &["push", image], &[])?;
         exec::output(
             "kind",

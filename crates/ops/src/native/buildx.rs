@@ -48,6 +48,102 @@ fn has_credentials(url: &str) -> bool {
         .is_some_and(|host| host.contains('@'))
 }
 
+/// The ARG defaults of a Dockerfile, so a FROM line resolves to the image that a build pulls.
+fn arg_defaults(text: &str) -> Vec<(String, String)> {
+    text.lines()
+        .filter_map(|l| l.trim().strip_prefix("ARG "))
+        .filter_map(|l| l.split_once('='))
+        .map(|(k, v)| (k.trim().to_owned(), v.trim().trim_matches('"').to_owned()))
+        .collect()
+}
+
+fn substitute(value: &str, args: &[(String, String)]) -> String {
+    args.iter().fold(value.to_owned(), |out, (k, v)| {
+        out.replace(&format!("${{{k}}}"), v)
+            .replace(&format!("${k}"), v)
+    })
+}
+
+/// The images that a Dockerfile pulls: each FROM that is not a stage, and each `COPY --from` of an image.
+fn pulled_images(text: &str) -> Vec<String> {
+    let args = arg_defaults(text);
+    let mut stages: Vec<String> = Vec::new();
+    let mut images: Vec<String> = Vec::new();
+    for line in text.lines().map(str::trim) {
+        let words: Vec<&str> = line.split_whitespace().collect();
+        let image = match words.as_slice() {
+            ["FROM", rest @ ..] => {
+                let rest: Vec<&&str> = rest.iter().filter(|w| !w.starts_with("--")).collect();
+                if let [_, as_word, name] = rest.as_slice()
+                    && as_word.eq_ignore_ascii_case("as")
+                {
+                    stages.push((**name).to_owned());
+                }
+                rest.first().map(|w| substitute(w, &args))
+            }
+            ["COPY", rest @ ..] => rest
+                .iter()
+                .find_map(|w| w.strip_prefix("--from="))
+                .map(|w| substitute(w, &args)),
+            _ => None,
+        };
+        if let Some(image) = image
+            && image != "scratch"
+            && !stages.contains(&image)
+            && !images.contains(&image)
+        {
+            images.push(image);
+        }
+    }
+    images
+}
+
+/// The Nix outputs that a Dockerfile mounts: each `from=nix-<attribute>` of a RUN mount.
+fn nix_mounts(text: &str) -> Vec<String> {
+    let mut out: Vec<String> = Vec::new();
+    for attribute in text
+        .split("from=nix-")
+        .skip(1)
+        .filter_map(|rest| rest.split([',', ' ']).next())
+    {
+        if !out.iter().any(|a| a == attribute) {
+            out.push(attribute.to_owned());
+        }
+    }
+    out
+}
+
+/// The build contexts of ADR-1300 for one Dockerfile. Each Nix mount gets its store path, so a build step fetches
+/// no package. With a registry mirror, each pulled image comes from the mirror.
+pub(super) fn contexts(dockerfile: &str) -> Result<Vec<String>> {
+    let text =
+        fs::read_to_string(dockerfile).with_context(|| format!("cannot read {dockerfile}"))?;
+    let mut args = Vec::new();
+    for attribute in nix_mounts(&text) {
+        let path = exec::output(
+            "nix",
+            &[
+                "build",
+                "--no-link",
+                "--print-out-paths",
+                &format!(".#{attribute}"),
+            ],
+        )?;
+        args.push("--build-context".to_owned());
+        args.push(format!("nix-{attribute}={}", path.trim()));
+    }
+    if let Some(mirror) = super::egress::Egress::load().mirror {
+        for image in pulled_images(&text) {
+            args.push("--build-context".to_owned());
+            args.push(format!(
+                "{image}=docker-image://{mirror}/{}",
+                super::egress::full_name(&image)
+            ));
+        }
+    }
+    Ok(args)
+}
+
 pub(super) struct Builder {
     name: String,
     proxy: Vec<(&'static str, String)>,
@@ -138,6 +234,23 @@ impl Builder {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn a_dockerfile_lists_its_pulled_images_and_nix_mounts() {
+        let text = "ARG GO_VERSION=1.27.3\nFROM golang:${GO_VERSION}-alpine AS build\n\
+            RUN --mount=type=bind,from=nix-go-modules,target=/goproxy go build\n\
+            FROM build AS test\nFROM gcr.io/distroless/static:nonroot\n\
+            COPY --from=build /out/app /app\nCOPY --from=amacneil/dbmate:2.38.2 /dbmate /dbmate\n";
+        assert_eq!(
+            pulled_images(text),
+            [
+                "golang:1.27.3-alpine",
+                "gcr.io/distroless/static:nonroot",
+                "amacneil/dbmate:2.38.2"
+            ]
+        );
+        assert_eq!(nix_mounts(text), ["go-modules"]);
+    }
 
     #[test]
     fn a_bypass_list_is_one_driver_option() {

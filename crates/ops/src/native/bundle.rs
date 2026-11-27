@@ -6,24 +6,11 @@ use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Result, bail};
 
+use super::egress::full_name;
 use super::files::TempDir;
 use super::{detail, exec, ok, step};
 
 const USAGE: &str = "usage: tabkit-ops bundle export <file.tar.zst> --key <nix-signing-key> [--images <list>] [installable...]\n       tabkit-ops bundle import <file.tar.zst> [--registry <host:port>] [--plain-http] [--forge <git-url>]";
-
-/// The full name of an image, with its registry. A name with no registry is on Docker Hub.
-fn full_name(reference: &str) -> String {
-    let first = reference.split('/').next().unwrap_or_default();
-    let has_registry = reference.contains('/')
-        && (first.contains('.') || first.contains(':') || first == "localhost");
-    if has_registry {
-        reference.to_owned()
-    } else if reference.contains('/') {
-        format!("docker.io/{reference}")
-    } else {
-        format!("docker.io/library/{reference}")
-    }
-}
 
 /// The images of a list file: the last field of each line, without comments and blank lines.
 fn images(text: &str) -> Vec<String> {

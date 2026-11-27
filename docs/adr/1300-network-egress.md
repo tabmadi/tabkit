@@ -44,6 +44,7 @@ The drivers:
 | `TABKIT_EGRESS` | The level: `direct`, `proxy`, `internal`, or `airgap` |
 | `HTTP_PROXY`, `HTTPS_PROXY`, and the lowercase forms | The proxy URL, at the `proxy` level only |
 | `NO_PROXY` and `no_proxy` | The bypass list of the site |
+| `TABKIT_REGISTRY_MIRROR` | The registry that mirrors each upstream under a path of its host name, such as `registry.internal/docker.io` |
 
 The file is absent on a machine with direct internet. The dev shell loads it. The Nix daemon and Docker load it through a systemd drop-in named `tabkit-egress.conf`.
 
@@ -52,6 +53,8 @@ The file is absent on a machine with direct internet. The dev shell loads it. Th
 **A NixOS machine uses `nixosModules.egress`.** It writes the file, adds the drop-in to each unit that fetches, and installs the site CA. At the `internal` and `airgap` levels, the internal caches are the only Nix substituters. So a cache miss fails and never reaches the internet.
 
 **Another machine uses `tabkit-ops egress setup`.** It checks the daemons and the Docker CLI config, and it writes the files that need root for a person to install.
+
+**An image build fetches nothing itself.** A Dockerfile mounts a Nix output with `--mount=type=bind,from=nix-<attribute>`, and tabkit-ops passes its store path as a build context. With a registry mirror, tabkit-ops replaces each base image with its copy on the mirror. So a Dockerfile names its images and packages, and it never names a mirror.
 
 **A bundle carries the mirrors across an air gap.** `tabkit-ops bundle export` writes the Nix closure as a signed file cache, each image as an OCI layout, a git bundle, and a manifest of the pins. `tabkit-ops bundle import` loads each part into the Nix store, the registry, and the forge.
 

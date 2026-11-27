@@ -592,6 +592,7 @@ fn lighthouse_up(port: &str) -> Result<()> {
     );
     let status = builder
         .command()
+        .args(super::buildx::contexts("apps/frontend/Dockerfile")?)
         .args([
             "--progress",
             "plain",

@@ -41,8 +41,10 @@ fn build_push(
         format!("{PUSH_REG}/{name}:local"),
         format!("{REG}/{name}:local"),
     );
+    let contexts = super::buildx::contexts(dockerfile)?;
     for attempt in 1..=3 {
         let mut args = vec!["build", "-t", pushed.as_str(), "-f", dockerfile];
+        args.extend(contexts.iter().map(String::as_str));
         args.extend(build_args.iter().map(String::as_str));
         args.push(context);
         if logged(log, "docker", &args)

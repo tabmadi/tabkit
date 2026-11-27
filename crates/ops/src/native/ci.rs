@@ -576,7 +576,12 @@ fn build_one(
     work: &Path,
 ) -> (bool, String) {
     let meta = work.join(format!("{}.json", build.name));
+    let contexts = match super::buildx::contexts(&build.file) {
+        Ok(contexts) => contexts,
+        Err(e) => return (false, format!("{e:#}\n")),
+    };
     let mut command = builder.command();
+    command.args(&contexts);
     command
         .args(["--progress", "plain", "--push", "--file", &build.file])
         .args([

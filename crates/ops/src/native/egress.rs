@@ -24,6 +24,8 @@ pub struct Egress {
     pub level: String,
     pub proxy: Option<String>,
     pub bypass: String,
+    /// The registry that mirrors every upstream under a path of its host name, such as `zot:5000/docker.io`.
+    pub mirror: Option<String>,
 }
 
 fn parse(text: &str) -> Vec<(String, String)> {
@@ -77,6 +79,7 @@ impl Egress {
             level,
             proxy,
             bypass: merge(&[BASE, &site]),
+            mirror: get(&["TABKIT_REGISTRY_MIRROR"]).map(|m| m.trim_end_matches('/').to_owned()),
         }
     }
 
@@ -110,7 +113,10 @@ impl Egress {
 
     fn shell(&self) -> String {
         let quote = |v: &str| format!("'{}'", v.replace('\'', r"'\''"));
-        let head = format!("export TABKIT_EGRESS={}\n", quote(&self.level));
+        let mut head = format!("export TABKIT_EGRESS={}\n", quote(&self.level));
+        if let Some(mirror) = &self.mirror {
+            head = head + "export TABKIT_REGISTRY_MIRROR=" + &quote(mirror) + "\n";
+        }
         self.env().iter().fold(head, |out, (k, v)| {
             out + "export " + k + "=" + &quote(v) + "\n"
         })
@@ -124,6 +130,20 @@ impl Egress {
         Some(format!(
             "argo-cd:\n  repoServer:\n    env:\n      - name: HTTPS_PROXY\n        value: {want}\n      - name: HTTP_PROXY\n        value: {want}\n      - name: NO_PROXY\n        value: {bypass}\n"
         ))
+    }
+}
+
+/// The full name of an image, with its registry. A name with no registry is on Docker Hub.
+pub fn full_name(reference: &str) -> String {
+    let first = reference.split('/').next().unwrap_or_default();
+    let has_registry = reference.contains('/')
+        && (first.contains('.') || first.contains(':') || first == "localhost");
+    if has_registry {
+        reference.to_owned()
+    } else if reference.contains('/') {
+        format!("docker.io/{reference}")
+    } else {
+        format!("docker.io/library/{reference}")
     }
 }
 
